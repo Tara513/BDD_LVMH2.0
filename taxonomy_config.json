@@ -1,0 +1,285 @@
+{
+  "maisons": [
+    "Louis Vuitton",
+    "Christian Dior",
+    "Celine",
+    "Fendi",
+    "Loro Piana",
+    "Loewe",
+    "Givenchy",
+    "Berluti",
+    "Kenzo",
+    "Rimowa",
+    "Marc Jacobs",
+    "Moynat",
+    "Patou",
+    "Emilio Pucci"
+  ],
+  "rules": {
+    "Motivations": {
+      "Anniversaire": [
+        "anniversaire",
+        "birthday",
+        "cumpleaños",
+        "compleanno",
+        "geburtstag"
+      ],
+      "Professionnel": [
+        "pro",
+        "business",
+        "travail",
+        "work",
+        "office",
+        "chantier",
+        "board"
+      ],
+      "Voyage": [
+        "voyage",
+        "travel",
+        "vacances",
+        "trip",
+        "trek",
+        "reisen",
+        "viaje"
+      ],
+      "Cadeau": [
+        "cadeau",
+        "gift",
+        "regalo",
+        "present",
+        "geschenk"
+      ],
+      "Célébration": [
+        "diplôme",
+        "graduation",
+        "mariage",
+        "wedding",
+        "anniversary"
+      ]
+    },
+    "Produits": {
+      "Sac_Main": [
+        "sac",
+        "bag",
+        "bolso",
+        "borsa",
+        "handbag",
+        "tasche"
+      ],
+      "Sac_Travail": [
+        "briefcase",
+        "sac pro",
+        "sac travail",
+        "borsa lavoro",
+        "business-reise"
+      ],
+      "Sac_Voyage": [
+        "weekend",
+        "travel bag",
+        "keepall",
+        "valise",
+        "reisen"
+      ],
+      "Petite_Maroquinerie": [
+        "portefeuille",
+        "wallet",
+        "pochette",
+        "card holder",
+        "portafoglio"
+      ],
+      "Sneakers": [
+        "sneakers",
+        "chaussures",
+        "shoes",
+        "souliers",
+        "schuhe"
+      ]
+    },
+    "Profil_Client": {
+      "Profession_Medicale": [
+        "médecin",
+        "docteur",
+        "oncologist",
+        "oncologue",
+        "chirurgien",
+        "surgeon",
+        "dentiste",
+        "clinique"
+      ],
+      "Profession_Finance_Legal": [
+        "banquier",
+        "investment banker",
+        "avocat",
+        "lawyer",
+        "partner",
+        "dirigeant bancaire",
+        "hedge fund"
+      ],
+      "Profession_Creative_Culture": [
+        "réalisateur",
+        "director",
+        "cineasta",
+        "documentaires",
+        "curator",
+        "commissaire",
+        "art",
+        "museum",
+        "museo",
+        "écrivain",
+        "scrittrice",
+        "auteur",
+        "roman",
+        "editor",
+        "editore",
+        "journalist",
+        "journaliste"
+      ],
+      "Tech_Entrepreneur": [
+        "startup",
+        "AI",
+        "developer",
+        "développeur",
+        "tech",
+        "software",
+        "founder",
+        "entrepreneur"
+      ],
+      "Influenceur": [
+        "influenceur",
+        "influencer",
+        "followers",
+        "youtube",
+        "instagram",
+        "tiktok",
+        "blogger",
+        "blogueur",
+        "fashion blogger"
+      ],
+      "Client_VIP_Fidele": [
+        "client régulier",
+        "client fidèle",
+        "loyal client",
+        "VIP",
+        "clientes VIP",
+        "depuis 2014",
+        "depuis 2015",
+        "client depuis"
+      ],
+      "Nouveau_Client": [
+        "nouveau client",
+        "first time customer",
+        "première visite",
+        "first time",
+        "new customer"
+      ]
+    },
+    "Style_Vie": {
+      "Sport_Intensif": [
+        "triathlon",
+        "marathon",
+        "crossfit",
+        "sports extrêmes",
+        "escalade",
+        "parapente",
+        "kitesurf",
+        "competizioni",
+        "competitions"
+      ],
+      "Sport_Raffine": [
+        "golf",
+        "tennis",
+        "club",
+        "Queens Club",
+        "Wimbledon",
+        "équitation",
+        "horse riding"
+      ],
+      "Bien_Etre": [
+        "yoga",
+        "pilates",
+        "tai chi",
+        "wellness",
+        "retreats",
+        "retraite bien-être",
+        "spa"
+      ],
+      "Culture_Art": [
+        "Biennale",
+        "biennale",
+        "exposition",
+        "exhibitions",
+        "art fair",
+        "Basel",
+        "Venice",
+        "Miami",
+        "musée",
+        "museum",
+        "galerie",
+        "gallery"
+      ],
+      "Voyage_Frequent": [
+        "voyage souvent",
+        "travels frequently",
+        "travel bag",
+        "congrès",
+        "congress",
+        "tour",
+        "tournée",
+        "San Francisco",
+        "Tokyo",
+        "Singapore",
+        "Miami",
+        "Dubai",
+        "Patagonie",
+        "Grèce",
+        "Maldivas",
+        "Maldives",
+        "Asia",
+        "Amérique Sud"
+      ],
+      "Famille": [
+        "enfants",
+        "children",
+        "fils",
+        "fille",
+        "adolescent",
+        "teenager",
+        "family",
+        "famille"
+      ]
+    },
+    "Relation_Marque_Canal": {
+      "Acheteur_Cadeaux_Famille": [
+        "cadeau",
+        "gift",
+        "regalo",
+        "acheter cadeaux",
+        "cadeaux famille",
+        "gendre",
+        "nièce",
+        "neveu"
+      ],
+      "Events_Boutique": [
+        "événements boutique",
+        "boutique event",
+        "vip event",
+        "inviter événement",
+        "salons",
+        "salons culturels"
+      ],
+      "Réseau_Influence": [
+        "référence",
+        "recommander",
+        "recommend",
+        "réseau",
+        "network",
+        "colleagues",
+        "collègues",
+        "host academic dinners",
+        "salons culturels",
+        "potentiel références"
+      ]
+    }
+  }
+}
+

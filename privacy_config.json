@@ -1,0 +1,6 @@
+{
+  "personal_fields": ["email", "name", "phone"],
+  "drop_fields": ["phone"],
+  "hash_fields": ["email"]
+}
+
