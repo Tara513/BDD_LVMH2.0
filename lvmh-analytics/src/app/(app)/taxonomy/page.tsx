@@ -11,7 +11,7 @@ export default function TaxonomyPage() {
   const filteredRules = useMemo(() => {
     if (!search.trim()) return taxonomy.rules;
     const q = search.toLowerCase();
-    const out: typeof taxonomy.rules = {};
+    const out: Record<string, Record<string, string[]>> = {};
 
     for (const [category, tags] of Object.entries(taxonomy.rules)) {
       const catResult: Record<string, string[]> = {};
