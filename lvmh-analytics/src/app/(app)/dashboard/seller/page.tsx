@@ -87,18 +87,20 @@ export default async function SellerFichesPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <h1 className="mb-2 text-2xl font-semibold text-neutral-50">Fiches clients</h1>
-      <p className="mb-6 text-sm text-neutral-500">
-        {total} fiche{total !== 1 ? "s" : ""} au total
-      </p>
+    <div className="mx-auto max-w-4xl px-6 py-10">
+      <div className="mb-10">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-50">Fiches clients</h1>
+        <p className="mt-1.5 text-sm text-neutral-500">
+          {total} fiche{total !== 1 ? "s" : ""} au total
+        </p>
+      </div>
 
       {noteList.length === 0 ? (
-        <p className="rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-6 text-center text-sm text-neutral-400">
-          Aucune fiche client pour le moment.
-        </p>
+        <div className="rounded-xl border border-neutral-800/80 bg-neutral-900/40 px-6 py-12 text-center">
+          <p className="text-sm text-neutral-400">Aucune fiche client pour le moment.</p>
+        </div>
       ) : (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         {noteList.map((note) => {
           const tags = tagsByNoteId[note.id] ?? [];
           const byFamily = tags.reduce<Record<string, string[]>>((acc, t) => {
@@ -122,27 +124,27 @@ export default async function SellerFichesPage({
       )}
 
       {totalPages > 1 && (
-        <div className="mt-10 flex items-center justify-center gap-2">
+        <nav className="mt-12 flex items-center justify-center gap-3" aria-label="Pagination">
           {page > 1 && (
             <Link
               href={`/dashboard/seller?page=${page - 1}`}
-              className="rounded-full border border-neutral-800 px-4 py-2 text-xs text-neutral-400 transition hover:bg-neutral-900 hover:text-neutral-300"
+              className="rounded-lg border border-neutral-700/80 bg-neutral-900/50 px-4 py-2.5 text-xs text-neutral-400 transition-colors duration-300 ease-out hover:border-neutral-600 hover:bg-neutral-800/60 hover:text-neutral-200"
             >
               Précédent
             </Link>
           )}
-          <span className="px-3 text-xs text-neutral-500">
+          <span className="min-w-[6rem] text-center text-xs text-neutral-500">
             Page {page} / {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={`/dashboard/seller?page=${page + 1}`}
-              className="rounded-full border border-neutral-800 px-4 py-2 text-xs text-neutral-400 transition hover:bg-neutral-900 hover:text-neutral-300"
+              className="rounded-lg border border-neutral-700/80 bg-neutral-900/50 px-4 py-2.5 text-xs text-neutral-400 transition-colors duration-300 ease-out hover:border-neutral-600 hover:bg-neutral-800/60 hover:text-neutral-200"
             >
               Suivant
             </Link>
           )}
-        </div>
+        </nav>
       )}
     </div>
   );
