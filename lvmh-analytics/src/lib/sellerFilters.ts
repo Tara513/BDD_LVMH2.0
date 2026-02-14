@@ -1,0 +1,84 @@
+/**
+ * Filtres fiches clients vendeur.
+ * Uniquement basé sur les tags réels (note_tags). Aucune donnée inventée.
+ */
+
+export type FilterState = {
+  searchId: string;
+  /** Pour chaque famille, liste de tags sélectionnés (vide = pas de filtre). */
+  byFamily: Record<string, string[]>;
+};
+
+/** Labels courts pour l’UI (familles et valeurs réelles). */
+export const FILTER_LABELS: Record<string, string> = {
+  Client_Segment: "Statut client",
+  Budget_Segment: "Budget",
+  Frequency: "Fréquence",
+  Motivations: "Projet d’achat",
+  Style: "Style",
+  Timing: "Timing",
+  Urgence: "Urgence",
+};
+
+/** Libellés optionnels pour certaines valeurs (sinon on affiche le tag tel quel). */
+export const TAG_LABELS: Record<string, string> = {
+  New: "New Client",
+  Regular: "Regular Client",
+  Loyal: "Loyal Client",
+  VIP: "VIP",
+  High_Value: "High Value",
+  Occasional: "Occasional",
+  Rare: "Rare",
+  Cadeau: "Cadeau",
+  Anniversaire: "Anniversaire",
+  Voyage: "Voyage",
+  Investissement: "Investissement",
+  Professionnel: "Professionnel",
+  Célébration: "Célébration",
+  Urgent: "Urgent",
+  Planned: "Planned",
+  Classic: "Classic",
+  Timeless: "Timeless",
+  Trendy: "Trendy",
+  Core: "Core",
+  Premium: "Premium",
+  VIC: "VIC (25k+)",
+};
+
+export function getTagLabel(tag: string): string {
+  return TAG_LABELS[tag] ?? tag;
+}
+
+/** Parse searchParams en FilterState. */
+export function parseFilterState(searchParams: Record<string, string | string[] | undefined>): FilterState {
+  const byFamily: Record<string, string[]> = {};
+  const families = [
+    "Client_Segment",
+    "Budget_Segment",
+    "Frequency",
+    "Motivations",
+    "Style",
+    "Timing",
+    "Urgence",
+  ];
+  for (const family of families) {
+    const v = searchParams[family];
+    if (typeof v === "string" && v.trim()) {
+      byFamily[family] = v.split(",").map((s) => s.trim()).filter(Boolean);
+    } else if (Array.isArray(v) && v.length) {
+      byFamily[family] = v.map((s) => String(s).trim()).filter(Boolean);
+    }
+  }
+  const searchId = typeof searchParams.q === "string" ? searchParams.q.trim() : "";
+  return { searchId, byFamily };
+}
+
+/** Construit l’URL des filtres (sans page). */
+export function buildFilterQuery(state: FilterState): string {
+  const params = new URLSearchParams();
+  if (state.searchId) params.set("q", state.searchId);
+  for (const [family, tags] of Object.entries(state.byFamily)) {
+    if (tags.length) params.set(family, tags.join(","));
+  }
+  return params.toString();
+}
