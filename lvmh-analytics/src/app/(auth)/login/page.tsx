@@ -33,18 +33,12 @@ export default function LoginPage() {
     try {
       // Étape 1: Authentification Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email,
         password,
       });
 
-      if (authError) {
-        setError(authError.message || "Erreur d'authentification. Vérifiez vos identifiants.");
-        setSubmitting(false);
-        return;
-      }
-
-      if (!authData.session) {
-        setError("Aucune session créée. Veuillez réessayer.");
+      if (authError || !authData.session) {
+        setError(authError?.message ?? "Impossible de se connecter.");
         setSubmitting(false);
         return;
       }
@@ -52,15 +46,8 @@ export default function LoginPage() {
       // Étape 2: Récupérer l'utilisateur via getUser()
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      if (userError) {
-        setError(`Erreur lors de la récupération de l'utilisateur: ${userError.message}`);
-        await supabase.auth.signOut();
-        setSubmitting(false);
-        return;
-      }
-
-      if (!user) {
-        setError("Utilisateur non trouvé.");
+      if (userError || !user) {
+        setError("Erreur lors de la récupération de l'utilisateur.");
         await supabase.auth.signOut();
         setSubmitting(false);
         return;
@@ -74,14 +61,7 @@ export default function LoginPage() {
         .single();
 
       // Étape 4: Si pas de profil → afficher message d'erreur
-      if (profileError) {
-        await supabase.auth.signOut();
-        setError(`Profil non trouvé: ${profileError.message}. Veuillez contacter l'administrateur.`);
-        setSubmitting(false);
-        return;
-      }
-
-      if (!profile) {
+      if (profileError || !profile) {
         await supabase.auth.signOut();
         setError("Votre compte n'a pas été configuré. Veuillez contacter l'administrateur.");
         setSubmitting(false);
@@ -91,16 +71,9 @@ export default function LoginPage() {
       // Étape 5: Vérifier le champ role et rediriger
       const role = profile.role as UserRole;
 
-      if (!role) {
+      if (!role || !["admin", "analyst", "seller"].includes(role)) {
         await supabase.auth.signOut();
-        setError("Rôle utilisateur manquant. Veuillez contacter l'administrateur.");
-        setSubmitting(false);
-        return;
-      }
-
-      if (!["admin", "analyst", "seller"].includes(role)) {
-        await supabase.auth.signOut();
-        setError(`Rôle utilisateur invalide: ${role}. Veuillez contacter l'administrateur.`);
+        setError("Rôle utilisateur invalide. Veuillez contacter l'administrateur.");
         setSubmitting(false);
         return;
       }
@@ -110,13 +83,8 @@ export default function LoginPage() {
       router.push(redirectPath);
       router.refresh();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Une erreur inattendue s'est produite.";
-      setError(errorMessage);
-      try {
-        await supabase.auth.signOut();
-      } catch {
-        // Ignore signOut errors
-      }
+      setError("Une erreur inattendue s'est produite.");
+      await supabase.auth.signOut();
       setSubmitting(false);
     }
   };

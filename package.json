@@ -1,0 +1,9 @@
+{
+  "name": "lvmh-project",
+  "private": true,
+  "scripts": {
+    "dev": "cd lvmh-analytics && npm run dev",
+    "build": "cd lvmh-analytics && npm run build",
+    "start": "cd lvmh-analytics && npm run start"
+  }
+}
