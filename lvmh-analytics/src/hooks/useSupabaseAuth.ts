@@ -2,16 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { hasMockAuthCookie, getMockRoleFromCookie } from "@/lib/mock-auth";
 import type { UserRole, UserProfile } from "@/types/auth";
 
 export function useSupabaseAuth() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<
-    Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]
+    Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"] | object | null
   >(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [houseId, setHouseId] = useState<string | null>(null);
+
+  const applyMockAuth = () => {
+    const mockRole = getMockRoleFromCookie();
+    if (mockRole) {
+      setSession({});
+      setProfile({ id: "mock", role: mockRole });
+      setRole(mockRole);
+      setHouseId(null);
+    }
+    setLoading(false);
+  };
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -42,6 +54,11 @@ export function useSupabaseAuth() {
   };
 
   useEffect(() => {
+    if (hasMockAuthCookie()) {
+      applyMockAuth();
+      return;
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       const currentSession = data.session ?? null;
       setSession(currentSession);
@@ -58,6 +75,10 @@ export function useSupabaseAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (hasMockAuthCookie()) {
+        applyMockAuth();
+        return;
+      }
       setSession(newSession);
       if (newSession?.user?.id) {
         await fetchProfile(newSession.user.id);

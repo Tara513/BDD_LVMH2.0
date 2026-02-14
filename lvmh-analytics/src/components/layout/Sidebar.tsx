@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { hasMockAuthCookie, clearMockAuth } from "@/lib/mock-auth";
 import type { UserRole } from "@/types/auth";
 
 const NAV_ITEMS_BY_ROLE: Record<UserRole, Array<{ href: string; label: string }>> = {
@@ -24,6 +25,11 @@ export const Sidebar = ({ role }: { role: UserRole }) => {
   const navItems = NAV_ITEMS_BY_ROLE[role] ?? NAV_ITEMS_BY_ROLE.analyst;
 
   const handleLogout = async () => {
+    if (hasMockAuthCookie()) {
+      clearMockAuth();
+      window.location.href = "/login";
+      return;
+    }
     await supabase.auth.signOut();
     window.location.href = "/login";
   };

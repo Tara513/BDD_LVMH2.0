@@ -2,28 +2,16 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
-import type { UserRole } from "@/types/auth";
+import { setMockAuth, checkAccessCode } from "@/lib/mock-auth";
+
+type LoginRole = "admin" | "seller";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<LoginRole>("seller");
+  const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const getRedirectPath = (role: UserRole): string => {
-    switch (role) {
-      case "admin":
-        return "/dashboard/admin";
-      case "analyst":
-        return "/dashboard/analytics";
-      case "seller":
-        return "/dashboard/seller";
-      default:
-        return "/dashboard/analytics";
-    }
-  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,60 +19,23 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Étape 1: Authentification Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError || !authData.session) {
-        setError(authError?.message ?? "Impossible de se connecter.");
+      if (!code.trim()) {
+        setError("Veuillez entrer le code d'accès.");
         setSubmitting(false);
         return;
       }
 
-      // Étape 2: Récupérer l'utilisateur via getUser()
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        setError("Erreur lors de la récupération de l'utilisateur.");
-        await supabase.auth.signOut();
+      if (!checkAccessCode(role, code.trim())) {
+        setError("Code incorrect pour ce rôle.");
         setSubmitting(false);
         return;
       }
 
-      // Étape 3: Récupérer le profil dans la table profiles
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      // Étape 4: Si pas de profil → afficher message d'erreur
-      if (profileError || !profile) {
-        await supabase.auth.signOut();
-        setError("Votre compte n'a pas été configuré. Veuillez contacter l'administrateur.");
-        setSubmitting(false);
-        return;
-      }
-
-      // Étape 5: Vérifier le champ role et rediriger
-      const role = profile.role as UserRole;
-
-      if (!role || !["admin", "analyst", "seller"].includes(role)) {
-        await supabase.auth.signOut();
-        setError("Rôle utilisateur invalide. Veuillez contacter l'administrateur.");
-        setSubmitting(false);
-        return;
-      }
-
-      // Rediriger selon le rôle
-      const redirectPath = getRedirectPath(role);
-      router.push(redirectPath);
+      setMockAuth(role);
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setError("Une erreur inattendue s'est produite.");
-      await supabase.auth.signOut();
       setSubmitting(false);
     }
   };
@@ -95,31 +46,50 @@ export default function LoginPage() {
         <div className="mb-6">
           <div className="text-[10px] tracking-[0.35em] text-neutral-500">LVMH</div>
           <h1 className="mt-4 text-2xl font-semibold text-neutral-50">Sign in</h1>
-          <p className="mt-2 text-xs text-neutral-500">Accédez au module d&apos;analyse clients &amp; taxonomie.</p>
+          <p className="mt-2 text-xs text-neutral-500">Choisissez votre accès et entrez le code.</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs text-neutral-400">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={submitting}
-              className="w-full rounded-full border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-500 disabled:opacity-50"
-            />
+            <label className="mb-2 block text-xs text-neutral-400">Accès</label>
+            <div className="flex gap-3">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="role"
+                  value="seller"
+                  checked={role === "seller"}
+                  onChange={() => setRole("seller")}
+                  disabled={submitting}
+                  className="border-neutral-600 bg-neutral-900 text-neutral-100 focus:ring-neutral-500"
+                />
+                <span className="text-xs text-neutral-300">Vendeur</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={role === "admin"}
+                  onChange={() => setRole("admin")}
+                  disabled={submitting}
+                  className="border-neutral-600 bg-neutral-900 text-neutral-100 focus:ring-neutral-500"
+                />
+                <span className="text-xs text-neutral-300">Admin</span>
+              </label>
+            </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-neutral-400">Mot de passe</label>
+            <label className="mb-1 block text-xs text-neutral-400">Code d&apos;accès</label>
             <input
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
               disabled={submitting}
-              className="w-full rounded-full border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-500 disabled:opacity-50"
+              placeholder="Entrez le code"
+              className="w-full rounded-full border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-neutral-500 disabled:opacity-50"
             />
           </div>
 
@@ -128,7 +98,7 @@ export default function LoginPage() {
             disabled={submitting}
             className="mt-2 w-full rounded-full bg-neutral-100 px-4 py-2 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-default disabled:opacity-50"
           >
-            {submitting ? "Connexion..." : "Sign in"}
+            {submitting ? "Connexion..." : "Accéder à l'app"}
           </button>
 
           {error && (
@@ -136,6 +106,10 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+
+          <p className="mt-4 text-center text-[10px] text-neutral-600">
+            Codes : Admin → admin1 &nbsp;·&nbsp; Vendeur → vendeur1
+          </p>
         </form>
       </div>
     </div>
