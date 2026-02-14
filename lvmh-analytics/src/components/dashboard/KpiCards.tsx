@@ -32,10 +32,17 @@ export function KpiCards({ kpis }: { kpis: DashboardKpis }) {
         value={kpis.vipHighValuePct}
         suffix="%"
       />
-      <KpiCell
-        label="Budget moyen"
-        value={kpis.budgetMoyen != null ? `${kpis.budgetMoyen.toLocaleString("fr-FR")} €` : null}
-      />
+      <Card className="p-4">
+        <p className="text-[11px] uppercase tracking-wider text-neutral-500">
+          Budget moyen
+        </p>
+        <p className="mt-1.5 text-xl font-light tabular-nums text-neutral-50">
+          {kpis.budgetMoyen != null ? `${kpis.budgetMoyen.toLocaleString("fr-FR")} €` : "—"}
+        </p>
+        <p className="mt-0.5 text-[10px] text-neutral-500">
+          par projet d&apos;achat (préciser : an / mois / foyer)
+        </p>
+      </Card>
       <KpiCell
         label="% achats urgents"
         value={kpis.achatsUrgentsPct}

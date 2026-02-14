@@ -27,26 +27,26 @@ export function BudgetCharts({ dist }: { dist: TagDistribution }) {
         Budget analysis
       </h2>
       <p className="text-xs text-neutral-500">
-        Répartition par tranche et budget moyen par type de projet.
+        Répartition par tranche et budget moyen par type de projet. Montants par projet d&apos;achat — préciser selon la source : par an, par mois ou par foyer.
       </p>
       <div className={`grid gap-6 ${tranches.length > 0 && moyenParProjet.length > 0 ? "lg:grid-cols-2" : ""}`}>
         {tranches.length > 0 && (
           <PieBlock
             data={tranches}
             title="Répartition par tranche de budget"
-            description="Entry / Core / Premium / VIC"
+            description="Entry / Core / Premium / VIC (par projet d'achat)"
           />
         )}
         {moyenParProjet.length > 0 && (
           <ChartCard
             title="Budget moyen par type de projet"
-            description="Valeur client par motivation"
+            description="Valeur client par motivation (budget par projet — an / mois / foyer selon source)"
           >
             <div className="min-h-0 w-full overflow-visible" style={{ height: 260 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={moyenParProjet} layout="vertical" margin={{ top: 8, right: 16, bottom: 16, left: 4 }}>
+                <BarChart data={moyenParProjet} layout="vertical" margin={{ top: 8, right: 20, bottom: 16, left: 4 }}>
                   <XAxis type="number" {...AXIS_STYLE} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k €`} />
-                  <YAxis type="category" dataKey="name" width={100} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={120} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}
                     formatter={(v: number) => [`${v.toLocaleString("fr-FR")} €`, "Budget moyen"]}

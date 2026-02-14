@@ -22,6 +22,8 @@ Familles et valeurs possibles (ne sors que celles que tu peux déduire du texte)
 - Style : Trendy, Timeless, Classic (si préférence style évoquée)
 - Frequency : Regular, Occasional, Rare (si fréquence d'achat évoquée)
 - Maison : Louis Vuitton, Christian Dior, Celine, Fendi, Loro Piana, Loewe, Givenchy, Berluti, Kenzo, Rimowa, Marc Jacobs, Moynat, Patou, Emilio Pucci (marque / maison citée dans la note)
+- Timing : 1-3 mois, 3-6 mois, > 6 mois (délai ou horizon d'achat évoqué)
+- Matières : Cuir grainé, Cuir lisse, Exotiques, Toile / Canvas (préférence matière évoquée)
 Ne invente pas de tags hors de ces listes. confidence entre 0 et 1.`;
 
 export async function tagNoteWithMistral(

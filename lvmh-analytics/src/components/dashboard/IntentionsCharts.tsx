@@ -46,7 +46,7 @@ export function IntentionsCharts({ dist }: { dist: TagDistribution }) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={top5} layout="vertical" margin={{ top: 8, right: 16, bottom: 16, left: 4 }}>
                   <XAxis type="number" dataKey="count" {...AXIS_STYLE} />
-                  <YAxis type="category" dataKey="name" width={110} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={130} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Bar dataKey="count" radius={BAR_RADIUS} minPointSize={4}>
                     {top5.map((_, i) => (

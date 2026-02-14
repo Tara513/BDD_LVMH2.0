@@ -92,6 +92,17 @@ export const taxonomy = {
       Occasional: ["occasionnel", "occasional", "de temps en temps", "quelques fois"],
       Rare: ["rare", "rarement", "première fois", "exceptionnel"],
     },
+    Timing: {
+      "1-3 mois": ["1-3 mois", "1 à 3 mois", "sous 3 mois", "court terme", "quick", "soon"],
+      "3-6 mois": ["3-6 mois", "3 à 6 mois", "6 mois", "milieu d'année"],
+      "> 6 mois": ["> 6 mois", "plus de 6 mois", "long terme", "plus tard", "next year"],
+    },
+    Matières: {
+      "Cuir grainé": ["cuir grainé", "grained leather", "epi", "grain"],
+      "Cuir lisse": ["cuir lisse", "smooth leather", "lisse"],
+      Exotiques: ["exotique", "exotic", "crocodile", "python", "lizard", "ostrich"],
+      "Toile / Canvas": ["toile", "canvas", "monogram", "damier"],
+    },
     Maison: {
       "Louis Vuitton": ["louis vuitton", "vuitton", "lv ", " lv", "louis-vuitton"],
       "Christian Dior": ["dior", "christian dior", "lady dior", "miss dior"],

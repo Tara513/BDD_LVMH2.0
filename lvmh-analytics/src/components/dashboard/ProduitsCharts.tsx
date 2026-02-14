@@ -43,11 +43,11 @@ function BarBlock({
   if (!data.length) return null;
   return (
     <ChartCard title={title} description={description}>
-      <div className="min-h-0 w-full overflow-visible" style={{ height: 220 }}>
+      <div className="min-h-0 w-full overflow-visible" style={{ height: 240 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ top: 8, right: 16, bottom: 16, left: 4 }}>
+          <BarChart data={data} layout="vertical" margin={{ top: 8, right: 20, bottom: 16, left: 4 }}>
             <XAxis type="number" {...AXIS_STYLE} />
-            <YAxis type="category" dataKey="name" width={140} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
+            <YAxis type="category" dataKey="name" width={160} {...AXIS_STYLE} tick={{ fontSize: 11 }} />
             <Tooltip contentStyle={TOOLTIP_STYLE} />
             <Bar dataKey={dataKey} radius={BAR_RADIUS} minPointSize={4} barCategoryGap="12%">
               {data.map((_, i) => (

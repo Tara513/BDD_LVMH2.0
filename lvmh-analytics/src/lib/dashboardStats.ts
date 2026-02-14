@@ -16,6 +16,7 @@ export type DashboardKpis = {
   totalClients: number;
   vipHighValuePct: number | null;
   budgetMoyen: number | null;
+  vicPct: number | null;
   achatsUrgentsPct: number | null;
   taggingRate: number;
   nouveauxVsFidelesPct: { nouveaux: number; fideles: number } | null;
@@ -72,10 +73,16 @@ export function deriveKpis(rpc: DashboardStatsRpc): DashboardKpis {
       }
     : null;
 
+  const vicCount = budgetSegment["VIC"] ?? 0;
+  const vicPct = total > 0 && (vicCount > 0 || sumTagCounts(budgetSegment) > 0)
+    ? Math.round((vicCount / total) * 100)
+    : null;
+
   return {
     totalClients: total,
     vipHighValuePct: vipHighValuePct ?? null,
     budgetMoyen,
+    vicPct: vicPct ?? null,
     achatsUrgentsPct: achatsUrgentsPct ?? null,
     taggingRate,
     nouveauxVsFidelesPct,
@@ -245,4 +252,32 @@ export function segmentationStatut(dist: TagDistribution): Array<{ name: string;
     VIP: "VIP",
     High_Value: "High Value",
   });
+}
+
+/** Top Purchase Projects = Motivations (pour dashboard admin simplifié) */
+export function topPurchaseProjects(dist: TagDistribution): Array<{ name: string; count: number }> {
+  return topN(dist, "Motivations", 8, {
+    Anniversaire: "Anniversaire",
+    Cadeau: "Cadeau famille",
+    Célébration: "Célébration",
+    Investissement: "Investissement",
+    Professionnel: "Professionnel",
+    Voyage: "Voyage",
+  });
+}
+
+/** Timing Distribution (1-3 mois, 3-6 mois, > 6 mois) */
+export function timingDistribution(dist: TagDistribution): Array<{ name: string; count: number }> {
+  const series = distributionToSeries(dist, "Timing", {
+    "1-3 mois": "1-3 mois",
+    "3-6 mois": "3-6 mois",
+    "> 6 mois": "> 6 mois",
+  });
+  return series.map((d) => ({ name: d.name, count: d.value }));
+}
+
+/** Materials Preferences (Cuir grainé, Exotiques, etc.) */
+export function materialsDistribution(dist: TagDistribution): Array<{ name: string; count: number }> {
+  const series = distributionToSeries(dist, "Matières");
+  return series.map((d) => ({ name: d.name, count: d.value }));
 }

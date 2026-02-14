@@ -8,7 +8,7 @@ import type { UserRole } from "@/types/auth";
 
 const NAV_ITEMS_BY_ROLE: Record<UserRole, Array<{ href: string; label: string }>> = {
   seller: [
-    { href: "/dashboard/seller", label: "Dashboard" },
+    { href: "/dashboard/seller", label: "Fiches clients" },
   ],
   analyst: [
     { href: "/dashboard/analytics", label: "Dashboard" },
@@ -34,7 +34,7 @@ export const Sidebar = ({ role }: { role: UserRole }) => {
   };
 
   return (
-    <aside className="flex w-60 flex-col border-r border-neutral-900 bg-neutral-950 px-6 py-6">
+    <aside className="fixed inset-y-0 left-0 z-10 flex w-60 flex-col border-r border-neutral-900 bg-neutral-950 px-6 py-6">
       <div className="mb-8">
         <div className="text-[10px] tracking-[0.35em] text-neutral-500">LVMH</div>
         <div className="mt-2 text-xs text-neutral-500">Client Analytics Suite</div>
@@ -57,13 +57,15 @@ export const Sidebar = ({ role }: { role: UserRole }) => {
         })}
       </nav>
 
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="mt-6 rounded-full border border-neutral-800 px-3 py-2 text-[11px] text-neutral-400 hover:bg-neutral-900"
-      >
-        Logout
-      </button>
+      <div className="mt-auto pt-6">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full rounded-full border border-neutral-800 px-3 py-2.5 text-left text-[11px] text-neutral-400 transition hover:bg-neutral-900 hover:text-neutral-300"
+        >
+          Retour au login
+        </button>
+      </div>
     </aside>
   );
 };

@@ -4,13 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { DashboardStatsRpc } from "@/lib/dashboardStats";
 import { deriveKpis } from "@/lib/dashboardStats";
-import { KpiCards } from "@/components/dashboard/KpiCards";
-import { SegmentationCharts } from "@/components/dashboard/SegmentationCharts";
-import { IntentionsCharts } from "@/components/dashboard/IntentionsCharts";
-import { ProduitsCharts } from "@/components/dashboard/ProduitsCharts";
-import { BudgetCharts } from "@/components/dashboard/BudgetCharts";
-import { StyleCharts } from "@/components/dashboard/StyleCharts";
-import { FrequencyChart } from "@/components/dashboard/FrequencyChart";
+import { AdminKpiCards } from "@/components/dashboard/AdminKpiCards";
+import { AdminCharts } from "@/components/dashboard/AdminCharts";
 import { getMaisons } from "@/lib/taxonomy";
 
 function AdminDashboardContent() {
@@ -145,22 +140,12 @@ function AdminDashboardContent() {
         )}
 
         {kpis && (
-          <div className="mb-12">
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              KPI stratégiques
-            </h2>
-            <KpiCards kpis={kpis} />
+          <div className="mb-10">
+            <AdminKpiCards kpis={kpis} />
           </div>
         )}
 
-        <div className="space-y-14">
-          <SegmentationCharts dist={dist} />
-          <IntentionsCharts dist={dist} />
-          <ProduitsCharts dist={dist} />
-          <BudgetCharts dist={dist} />
-          <StyleCharts dist={dist} />
-          <FrequencyChart dist={dist} />
-        </div>
+        <AdminCharts dist={dist} />
       </div>
     </div>
   );

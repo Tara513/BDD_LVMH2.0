@@ -27,5 +27,5 @@ export const AXIS_STYLE = {
 
 export const BAR_RADIUS = [4, 4, 0, 0] as const;
 
-/** Taille par défaut des camemberts (compact pour tenir sur un écran) */
-export const PIE_SIZE = { height: 240, outerRadius: 58 };
+/** Taille des camemberts : graphique plus grand, place pour la légende */
+export const PIE_SIZE = { height: 300, outerRadius: 78 };
