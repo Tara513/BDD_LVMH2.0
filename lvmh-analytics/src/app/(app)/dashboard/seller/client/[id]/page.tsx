@@ -1,7 +1,9 @@
 import { redirect, notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { Card } from "@/components/ui/card";
+import { getMockAuthFromRequest } from "@/lib/mock-auth";
 import {
   tagsByFamily,
   getRecommendations,
@@ -22,7 +24,7 @@ type TagRow = { note_id: string; tag: string; tag_family: string };
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-neutral-300">
+    <span className="rounded-full border border-neutral-600 bg-neutral-800 px-3 py-1 text-xs text-neutral-200">
       {children}
     </span>
   );
@@ -30,7 +32,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+    <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
       {title}
     </h2>
   );
@@ -41,22 +43,28 @@ export default async function SellerClientFichePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const cookieStore = await cookies();
+  const mockRole = getMockAuthFromRequest(
+    cookieStore.get("lvmh_mock_auth")?.value,
+    cookieStore.get("lvmh_mock_role")?.value
+  );
+
   const supabase = await createClient();
   const { id } = await params;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || (profile.role !== "seller" && profile.role !== "admin")) {
-    redirect("/login");
+  if (!mockRole) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login");
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || (profile.role !== "seller" && profile.role !== "admin")) {
+      redirect("/login");
+    }
   }
 
   const { data: note, error: noteError } = await supabase
@@ -95,20 +103,19 @@ export default async function SellerClientFichePage({
   const hasStyle = (byFamily["Style"]?.length ?? 0) > 0 || (byFamily["Matières"]?.length ?? 0) > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
+    <div className="mx-auto max-w-3xl px-6 py-8 text-neutral-100">
       <div className="mb-6 flex items-center gap-3">
         <Link
           href="/dashboard/seller"
-          className="text-xs text-neutral-500 transition hover:text-neutral-300"
+          className="text-sm text-neutral-400 transition hover:text-white"
         >
           ← Fiches clients
         </Link>
       </div>
 
-      {/* Header synthétique — uniquement ce qui est tagué */}
       <div className="mb-8">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="text-lg font-semibold text-neutral-50">
+          <span className="text-lg font-semibold text-white">
             {note.external_id || "Fiche client"}
           </span>
           {note.language && (
@@ -137,56 +144,53 @@ export default async function SellerClientFichePage({
         </div>
       </div>
 
-      {/* Section Profil — uniquement Identity (Genre, Age_Range) */}
       {hasProfil && (
         <Card className="mb-6 p-5">
           <SectionTitle title="Profil" />
-          <dl className="space-y-2 text-sm">
+          <dl className="space-y-2 text-sm text-neutral-200">
             {byFamily["Genre"]?.length ? (
               <div>
-                <dt className="text-neutral-500">Genre</dt>
-                <dd className="text-neutral-300">{byFamily["Genre"].join(", ")}</dd>
+                <dt className="text-neutral-400">Genre</dt>
+                <dd className="text-white">{byFamily["Genre"].join(", ")}</dd>
               </div>
             ) : null}
             {byFamily["Age_Range"]?.length ? (
               <div>
-                <dt className="text-neutral-500">Tranche d’âge</dt>
-                <dd className="text-neutral-300">{byFamily["Age_Range"].join(", ")}</dd>
+                <dt className="text-neutral-400">Tranche d’âge</dt>
+                <dd className="text-white">{byFamily["Age_Range"].join(", ")}</dd>
               </div>
             ) : null}
           </dl>
         </Card>
       )}
 
-      {/* Section Projet d’achat — Motivations, Budget, Timing */}
       <Card className="mb-6 p-5">
         <SectionTitle title="Projet d’achat" />
-        <dl className="space-y-2 text-sm">
+        <dl className="space-y-2 text-sm text-neutral-200">
           {motivations.length > 0 && (
             <div>
-              <dt className="text-neutral-500">Motifs</dt>
-              <dd className="text-neutral-300">{motivations.join(", ")}</dd>
+              <dt className="text-neutral-400">Motifs</dt>
+              <dd className="text-white">{motivations.join(", ")}</dd>
             </div>
           )}
           {budget.length > 0 && (
             <div>
-              <dt className="text-neutral-500">Budget</dt>
-              <dd className="text-neutral-300">{budget.join(", ")}</dd>
+              <dt className="text-neutral-400">Budget</dt>
+              <dd className="text-white">{budget.join(", ")}</dd>
             </div>
           )}
           {timing.length > 0 && (
             <div>
-              <dt className="text-neutral-500">Timing</dt>
-              <dd className="text-neutral-300">{timing.join(", ")}</dd>
+              <dt className="text-neutral-400">Timing</dt>
+              <dd className="text-white">{timing.join(", ")}</dd>
             </div>
           )}
           {motivations.length === 0 && budget.length === 0 && timing.length === 0 && (
-            <p className="text-neutral-500">Non renseigné</p>
+            <p className="text-neutral-400">Non renseigné</p>
           )}
         </dl>
       </Card>
 
-      {/* Section Produits d’intérêt — uniquement tags Produits */}
       <Card className="mb-6 p-5">
         <SectionTitle title="Produits d’intérêt" />
         {hasProducts ? (
@@ -198,38 +202,36 @@ export default async function SellerClientFichePage({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-neutral-500">Aucun tag produit.</p>
+          <p className="text-sm text-neutral-400">Aucun tag produit.</p>
         )}
       </Card>
 
-      {/* Section Style & préférences — Style, Matières */}
       <Card className="mb-6 p-5">
         <SectionTitle title="Style & préférences" />
         {hasStyle ? (
-          <dl className="space-y-2 text-sm">
+          <dl className="space-y-2 text-sm text-neutral-200">
             {byFamily["Style"]?.length ? (
               <div>
-                <dt className="text-neutral-500">Style</dt>
-                <dd className="text-neutral-300">{byFamily["Style"].join(", ")}</dd>
+                <dt className="text-neutral-400">Style</dt>
+                <dd className="text-white">{byFamily["Style"].join(", ")}</dd>
               </div>
             ) : null}
             {byFamily["Matières"]?.length ? (
               <div>
-                <dt className="text-neutral-500">Matières</dt>
-                <dd className="text-neutral-300">{byFamily["Matières"].join(", ")}</dd>
+                <dt className="text-neutral-400">Matières</dt>
+                <dd className="text-white">{byFamily["Matières"].join(", ")}</dd>
               </div>
             ) : null}
           </dl>
         ) : (
-          <p className="text-sm text-neutral-500">Non renseigné</p>
+          <p className="text-sm text-neutral-400">Non renseigné</p>
         )}
       </Card>
 
-      {/* Recommandations — règles uniquement */}
       {recommendations.length > 0 && (
         <Card className="mb-6 border-amber-900/40 bg-amber-950/20 p-5">
           <SectionTitle title="Recommandations" />
-          <ul className="list-inside list-disc space-y-1 text-sm text-amber-200/90">
+          <ul className="list-inside list-disc space-y-1 text-sm text-amber-200">
             {recommendations.map((rec, i) => (
               <li key={i}>{rec}</li>
             ))}
@@ -237,20 +239,19 @@ export default async function SellerClientFichePage({
         </Card>
       )}
 
-      {/* Accordéon Tags détaillés */}
       <Card className="mb-6 p-5">
         <SectionTitle title="Tags détaillés" />
         <div className="space-y-2">
           {tagGroups.map(({ groupLabel, families }) => (
-            <details key={groupLabel} className="group rounded-lg border border-neutral-800">
-              <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-neutral-400 transition hover:text-neutral-300">
+            <details key={groupLabel} className="group rounded-lg border border-neutral-700">
+              <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-neutral-300 transition hover:text-white">
                 {groupLabel}
               </summary>
-              <div className="border-t border-neutral-800 px-3 py-2">
+              <div className="border-t border-neutral-700 px-3 py-2">
                 {families.map((fam) => (
                   <div key={fam} className="mb-2 last:mb-0">
-                    <span className="text-[10px] uppercase text-neutral-500">{fam}</span>
-                    <p className="text-xs text-neutral-300">
+                    <span className="text-[10px] uppercase text-neutral-400">{fam}</span>
+                    <p className="text-xs text-neutral-200">
                       {(byFamily[fam] ?? []).join(", ")}
                     </p>
                   </div>
@@ -261,10 +262,9 @@ export default async function SellerClientFichePage({
         </div>
       </Card>
 
-      {/* Note brute (donnée réelle) */}
       <Card className="p-5">
         <SectionTitle title="Note client" />
-        <p className="whitespace-pre-wrap text-sm text-neutral-400">
+        <p className="whitespace-pre-wrap text-sm text-neutral-200">
           {note.note_text || "—"}
         </p>
       </Card>

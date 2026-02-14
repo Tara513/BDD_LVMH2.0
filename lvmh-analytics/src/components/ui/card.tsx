@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-export const Card = ({ children }: { children: ReactNode }) => (
-  <div className="overflow-visible rounded-2xl border border-neutral-900 bg-neutral-950/80 p-5">{children}</div>
+export const Card = ({ children, className }: { children: ReactNode; className?: string }) => (
+  <div className={`overflow-visible rounded-2xl border border-neutral-800 bg-neutral-900/90 text-neutral-100 p-5 ${className ?? ""}`}>{children}</div>
 );
 
 export const CardHeader = ({ title, description }: { title: string; description?: string }) => (

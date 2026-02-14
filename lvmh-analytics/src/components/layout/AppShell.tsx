@@ -31,6 +31,14 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
     }
   }, [loading, session, profile, router]);
 
+  // Vendeur sur /dashboard → rediriger une seule fois vers la liste des fiches (évite boucle de rendu)
+  useEffect(() => {
+    if (loading || !role || pathname !== "/dashboard") return;
+    if (role === "seller") {
+      router.replace("/dashboard/seller");
+    }
+  }, [loading, role, pathname, router]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
@@ -68,12 +76,21 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  // Pendant la redirection vendeur /dashboard → /dashboard/seller, afficher le chargement au lieu de null
+  if (pathname === "/dashboard" && role === "seller") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-100">
+        <span className="text-xs text-neutral-500">Redirection…</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-neutral-950 text-neutral-50">
       <Sidebar role={role ?? "analyst"} />
       <div className="ml-60 flex min-h-screen flex-1 flex-col border-l border-neutral-900">
         <Header />
-        <main className="flex-1 px-8 py-6">{children}</main>
+        <main className="flex-1 bg-neutral-950 px-8 py-6 text-neutral-100">{children}</main>
       </div>
     </div>
   );

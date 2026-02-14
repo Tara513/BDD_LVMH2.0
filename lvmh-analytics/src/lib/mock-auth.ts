@@ -44,3 +44,10 @@ export function hasMockAuthCookie(): boolean {
   if (typeof document === "undefined") return false;
   return document.cookie.includes(`${MOCK_AUTH_COOKIE}=1`);
 }
+
+/** Côté serveur : vérifier l’auth mock à partir des cookies (évite boucle redirect avec Supabase). */
+export function getMockAuthFromRequest(mockAuthValue: string | undefined, mockRoleValue: string | undefined): "admin" | "seller" | null {
+  if (mockAuthValue !== "1" || !mockRoleValue) return null;
+  if (mockRoleValue === "admin" || mockRoleValue === "seller") return mockRoleValue;
+  return null;
+}

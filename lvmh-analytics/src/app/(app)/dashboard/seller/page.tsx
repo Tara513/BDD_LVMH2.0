@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { Card } from "@/components/ui/card";
+import { getMockAuthFromRequest } from "@/lib/mock-auth";
 
 const PAGE_SIZE = 24;
 
@@ -20,24 +22,27 @@ export default async function SellerFichesPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  const cookieStore = await cookies();
+  const mockRole = getMockAuthFromRequest(
+    cookieStore.get("lvmh_mock_auth")?.value,
+    cookieStore.get("lvmh_mock_role")?.value
+  );
+
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || (profile.role !== "seller" && profile.role !== "admin")) {
-    redirect("/login");
+  if (!mockRole) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login");
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || (profile.role !== "seller" && profile.role !== "admin")) {
+      redirect("/login");
+    }
   }
 
   const { page: pageParam } = await searchParams;
