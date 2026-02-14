@@ -1,9 +1,9 @@
 import { redirect, notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { Card } from "@/components/ui/card";
 import { getMockAuthFromRequest } from "@/lib/mock-auth";
+import { BackToFichesLink } from "@/components/seller/BackToFichesLink";
 import {
   tagsByFamily,
   getRecommendations,
@@ -105,12 +105,7 @@ export default async function SellerClientFichePage({
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 text-neutral-100">
       <div className="mb-6 flex items-center gap-3">
-        <Link
-          href="/dashboard/seller"
-          className="text-sm text-neutral-400 transition hover:text-white"
-        >
-          ← Fiches clients
-        </Link>
+        <BackToFichesLink />
       </div>
 
       <div className="mb-8">
@@ -265,7 +260,7 @@ export default async function SellerClientFichePage({
       <Card className="p-5">
         <SectionTitle title="Note client" />
         <p className="whitespace-pre-wrap text-sm text-neutral-200">
-          {note.note_text || "—"}
+          {(note.note_text ?? "").trim() || "—"}
         </p>
       </Card>
     </div>

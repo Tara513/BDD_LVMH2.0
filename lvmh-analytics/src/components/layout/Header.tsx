@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import { mockDatasets } from "@/lib/mock-data";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Admin",
+  analyst: "Analyste",
+  seller: "Vendeur",
+};
 
 export const Header = () => {
+  const { role } = useSupabaseAuth();
   const [datasetId, setDatasetId] = useState<string | undefined>(mockDatasets[0]?.id);
+  const roleLabel = role ? ROLE_LABEL[role] ?? role : "—";
 
   return (
     <header className="flex items-center justify-between border-b border-neutral-900 bg-neutral-950/90 px-8 py-3">
@@ -24,7 +33,7 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="text-xs text-neutral-400">Analyste</span>
+        <span className="text-xs text-neutral-400">{roleLabel}</span>
         <div className="h-8 w-8 rounded-full border border-neutral-700 bg-neutral-900" />
       </div>
     </header>

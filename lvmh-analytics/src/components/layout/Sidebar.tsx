@@ -47,6 +47,7 @@ export const Sidebar = ({ role }: { role: UserRole }) => {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={`rounded-full px-3 py-2 text-xs ${
                 active ? "bg-neutral-900 text-neutral-50" : "text-neutral-400 hover:bg-neutral-900/70"
               }`}

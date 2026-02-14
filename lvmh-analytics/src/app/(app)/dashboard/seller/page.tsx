@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { Card } from "@/components/ui/card";
 import { getMockAuthFromRequest } from "@/lib/mock-auth";
+import { FicheCard } from "@/components/seller/FicheCard";
 
 const PAGE_SIZE = 24;
 
@@ -89,11 +89,16 @@ export default async function SellerFichesPage({
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <h1 className="mb-2 text-2xl font-semibold text-neutral-50">Fiches clients</h1>
-      <p className="mb-8 text-sm text-neutral-500">
+      <p className="mb-6 text-sm text-neutral-500">
         {total} fiche{total !== 1 ? "s" : ""} au total
       </p>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {noteList.length === 0 ? (
+        <p className="rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-6 text-center text-sm text-neutral-400">
+          Aucune fiche client pour le moment.
+        </p>
+      ) : (
+      <div className="flex flex-col gap-1.5">
         {noteList.map((note) => {
           const tags = tagsByNoteId[note.id] ?? [];
           const byFamily = tags.reduce<Record<string, string[]>>((acc, t) => {
@@ -103,41 +108,18 @@ export default async function SellerFichesPage({
           }, {});
 
           return (
-            <Link key={note.id} href={`/dashboard/seller/client/${note.id}`}>
-              <Card className="flex flex-col transition hover:border-neutral-700">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-neutral-400">
-                    {note.external_id || "—"}
-                  </span>
-                {note.language && (
-                  <span className="rounded bg-neutral-800 px-2 py-0.5 text-[10px] text-neutral-500">
-                    {note.language}
-                  </span>
-                )}
-              </div>
-              <p className="mb-3 line-clamp-4 text-sm text-neutral-300">
-                {note.note_text || "—"}
-              </p>
-              <div className="mt-auto space-y-1.5 border-t border-neutral-800 pt-3">
-                {Object.entries(byFamily).map(([family, values]) => (
-                  <div key={family}>
-                    <span className="text-[10px] uppercase tracking-wider text-neutral-500">
-                      {family}
-                    </span>
-                    <p className="text-xs text-neutral-400">
-                      {values.join(", ")}
-                    </p>
-                  </div>
-                ))}
-                {tags.length === 0 && (
-                  <p className="text-xs text-neutral-600">Aucun tag</p>
-                )}
-              </div>
-              </Card>
-            </Link>
+            <FicheCard
+              key={note.id}
+              noteId={note.id}
+              externalId={note.external_id}
+              noteText={note.note_text}
+              language={note.language}
+              tagsByFamily={byFamily}
+            />
           );
         })}
       </div>
+      )}
 
       {totalPages > 1 && (
         <div className="mt-10 flex items-center justify-center gap-2">
