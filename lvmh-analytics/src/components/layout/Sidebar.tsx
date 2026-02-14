@@ -14,9 +14,8 @@ const NAV_ITEMS_BY_ROLE: Record<UserRole, Array<{ href: string; label: string }>
     { href: "/dashboard/analytics", label: "Dashboard" },
   ],
   admin: [
-    { href: "/dashboard/admin", label: "Dashboard Admin" },
-    { href: "/dashboard/analytics", label: "Dashboard Analytics" },
-    { href: "/dashboard/seller", label: "Dashboard Seller" },
+    { href: "/dashboard/admin/upload", label: "Upload & Analyse" },
+    { href: "/dashboard/admin/dashboard", label: "Dashboard" },
   ],
 };
 

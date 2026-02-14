@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export const Card = ({ children }: { children: ReactNode }) => (
-  <div className="rounded-2xl border border-neutral-900 bg-neutral-950/80 p-5">{children}</div>
+  <div className="overflow-visible rounded-2xl border border-neutral-900 bg-neutral-950/80 p-5">{children}</div>
 );
 
 export const CardHeader = ({ title, description }: { title: string; description?: string }) => (
@@ -11,5 +11,7 @@ export const CardHeader = ({ title, description }: { title: string; description?
   </div>
 );
 
-export const CardBody = ({ children }: { children: ReactNode }) => <div>{children}</div>;
+export const CardBody = ({ children }: { children: ReactNode }) => (
+  <div className="overflow-visible min-w-0">{children}</div>
+);
 
