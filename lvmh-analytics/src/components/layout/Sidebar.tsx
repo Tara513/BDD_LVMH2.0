@@ -9,6 +9,7 @@ import type { UserRole } from "@/types/auth";
 const NAV_ITEMS_BY_ROLE: Record<UserRole, Array<{ href: string; label: string }>> = {
   seller: [
     { href: "/dashboard/seller", label: "Fiches clients" },
+    { href: "/dashboard/seller/assistant", label: "Assistant Retail" },
   ],
   analyst: [
     { href: "/dashboard/analytics", label: "Dashboard" },

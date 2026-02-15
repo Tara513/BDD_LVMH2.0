@@ -73,3 +73,46 @@ export async function tagNoteWithMistral(
     return [];
   }
 }
+
+const CLEAN_TRANSCRIPT_SYSTEM = `Tu nettoies une transcription de conversation client (luxe/retail).
+Règles : supprime les hésitations (euh, hum), répétitions inutiles, et anonymise toute donnée personnelle identifiable (noms, numéros de téléphone, emails, adresses).
+Ne modifie pas le sens ni les informations métier (budget, produits, motivations).
+Réponds UNIQUEMENT par le texte nettoyé, sans préambule.`;
+
+/** Nettoie une transcription (RGPD + fluidité). Retourne le texte tel quel en cas d’erreur. */
+export async function cleanTranscriptWithMistral(
+  rawText: string,
+  apiKey: string
+): Promise<string> {
+  if (!apiKey || !rawText?.trim()) return rawText?.trim() ?? "";
+
+  const body = {
+    model: MODEL,
+    messages: [
+      { role: "system", content: CLEAN_TRANSCRIPT_SYSTEM },
+      {
+        role: "user",
+        content: `Transcription à nettoyer :\n\n${rawText.slice(0, 6000)}`,
+      },
+    ],
+    temperature: 0.1,
+    max_tokens: 2048,
+  };
+
+  const res = await fetch(MISTRAL_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return rawText.trim();
+
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const content = data.choices?.[0]?.message?.content?.trim();
+  return content && content.length > 0 ? content : rawText.trim();
+}
