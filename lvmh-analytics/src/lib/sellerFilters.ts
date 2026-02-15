@@ -9,15 +9,37 @@ export type FilterState = {
   byFamily: Record<string, string[]>;
 };
 
-/** Labels courts pour l’UI (familles et valeurs réelles). */
+/** Labels courts pour l'UI (familles et valeurs réelles). */
 export const FILTER_LABELS: Record<string, string> = {
-  Client_Segment: "Statut client",
   Budget_Segment: "Budget",
+  Motivations: "Type d'achat",
+  Client_Segment: "Statut client",
   Frequency: "Fréquence",
-  Motivations: "Projet d’achat",
   Style: "Style",
-  Timing: "Timing",
   Urgence: "Urgence",
+};
+
+/** Ordre d'affichage des filtres. */
+export const PREFERRED_FILTER_ORDER = [
+  "Budget_Segment",
+  "Motivations",
+  "Client_Segment",
+  "Urgence",
+  "Frequency",
+  "Style",
+];
+
+/** Options par défaut pour filtres principaux (toujours affichés, même sans tags en base). */
+export const DEFAULT_FILTER_OPTIONS: Record<string, string[]> = {
+  Budget_Segment: ["Entry", "Core", "Premium", "VIC"],
+  Motivations: [
+    "Cadeau",
+    "Anniversaire",
+    "Voyage",
+    "Investissement",
+    "Professionnel",
+    "Célébration",
+  ],
 };
 
 /** Libellés optionnels pour certaines valeurs (sinon on affiche le tag tel quel). */
@@ -43,6 +65,9 @@ export const TAG_LABELS: Record<string, string> = {
   Core: "Core",
   Premium: "Premium",
   VIC: "VIC (25k+)",
+  High: "Haute",
+  Medium: "Moyenne",
+  Low: "Basse",
 };
 
 export function getTagLabel(tag: string): string {
@@ -53,12 +78,11 @@ export function getTagLabel(tag: string): string {
 export function parseFilterState(searchParams: Record<string, string | string[] | undefined>): FilterState {
   const byFamily: Record<string, string[]> = {};
   const families = [
-    "Client_Segment",
     "Budget_Segment",
-    "Frequency",
     "Motivations",
+    "Client_Segment",
+    "Frequency",
     "Style",
-    "Timing",
     "Urgence",
   ];
   for (const family of families) {
@@ -73,7 +97,7 @@ export function parseFilterState(searchParams: Record<string, string | string[] 
   return { searchId, byFamily };
 }
 
-/** Construit l’URL des filtres (sans page). */
+/** Construit l'URL des filtres (sans page). */
 export function buildFilterQuery(state: FilterState): string {
   const params = new URLSearchParams();
   if (state.searchId) params.set("q", state.searchId);

@@ -6,6 +6,7 @@ import {
   parseFilterState,
   buildFilterQuery,
   FILTER_LABELS,
+  PREFERRED_FILTER_ORDER,
   getTagLabel,
   type FilterState,
 } from "@/lib/sellerFilters";
@@ -57,9 +58,13 @@ export function SellerFilterBar({ availableOptions }: Props) {
     state.searchId ||
     Object.values(state.byFamily).some((arr) => arr.length > 0);
 
-  const families = Object.keys(availableOptions).filter(
-    (f) => FILTER_LABELS[f] && availableOptions[f].length > 0
-  );
+  const families = Object.keys(availableOptions)
+    .filter((f) => FILTER_LABELS[f] && availableOptions[f].length > 0)
+    .sort(
+      (a, b) =>
+        (PREFERRED_FILTER_ORDER.indexOf(a) === -1 ? 999 : PREFERRED_FILTER_ORDER.indexOf(a)) -
+        (PREFERRED_FILTER_ORDER.indexOf(b) === -1 ? 999 : PREFERRED_FILTER_ORDER.indexOf(b))
+    );
 
   return (
     <div className="rounded-xl border border-neutral-800/80 bg-neutral-900/40 p-4">

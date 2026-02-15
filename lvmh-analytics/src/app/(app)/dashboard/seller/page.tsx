@@ -9,6 +9,7 @@ import {
   parseFilterState,
   buildFilterQuery,
   FILTER_LABELS,
+  DEFAULT_FILTER_OPTIONS,
 } from "@/lib/sellerFilters";
 
 const PAGE_SIZE = 24;
@@ -60,6 +61,11 @@ async function getAvailableFilterOptions(
   const out: Record<string, string[]> = {};
   for (const [k, v] of Object.entries(map)) {
     out[k] = Array.from(v).sort();
+  }
+  // Toujours afficher les 4 filtres principaux avec options par défaut (taxonomie)
+  for (const [family, defaultOpts] of Object.entries(DEFAULT_FILTER_OPTIONS)) {
+    const existing = out[family] ?? [];
+    out[family] = Array.from(new Set([...existing, ...defaultOpts])).sort();
   }
   return out;
 }

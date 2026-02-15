@@ -67,26 +67,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const tagsToInsert = combined.map((t) => ({
-      note_id: noteId,
-      tag: t.tag,
-      tag_family: t.tag_family,
-      confidence: Number(t.confidence) || 0.9,
-    }));
-
-    if (tagsToInsert.length > 0) {
-      await supabase.from("note_tags").delete().eq("note_id", noteId);
-      await supabase.from("note_tags").insert(tagsToInsert);
-    }
-
     const byFamily: TagsByFamily = {};
     for (const t of combined) {
       if (!byFamily[t.tag_family]) byFamily[t.tag_family] = [];
       if (!byFamily[t.tag_family].includes(t.tag)) byFamily[t.tag_family].push(t.tag);
     }
 
-    const synthèse = getSynthèseBusiness(byFamily);
     const priorityLevel = getPriorityLevel(byFamily);
+    const tagsToInsert = combined.map((t) => ({
+      note_id: noteId,
+      tag: t.tag,
+      tag_family: t.tag_family,
+      confidence: Number(t.confidence) || 0.9,
+    }));
+    if (priorityLevel) {
+      tagsToInsert.push({
+        note_id: noteId,
+        tag: priorityLevel,
+        tag_family: "Priority",
+        confidence: 0.95,
+      });
+    }
+
+    if (tagsToInsert.length > 0) {
+      await supabase.from("note_tags").delete().eq("note_id", noteId);
+      await supabase.from("note_tags").insert(tagsToInsert);
+    }
+
+    const synthèse = getSynthèseBusiness(byFamily);
     const nextBestActions = getNextBestActions(byFamily);
 
     return NextResponse.json({
