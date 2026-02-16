@@ -9,6 +9,7 @@ import {
   type TagsByFamily,
 } from "@/lib/assistantRetail";
 import { getAutomationRecommendation } from "@/lib/nextBestActionAutomation";
+import { getRetailSuggestions } from "@/lib/retailSuggestions";
 
 function getRoleFromRequest(request: NextRequest): "seller" | "admin" | null {
   const auth = request.cookies.get("lvmh_mock_auth")?.value;
@@ -107,6 +108,18 @@ export async function POST(request: NextRequest) {
       { onConflict: "note_id" }
     );
 
+    const suggestions = getRetailSuggestions(byFamily);
+    await supabase.from("assistant_suggestions").upsert(
+      {
+        note_id: noteId,
+        suggested_categories: suggestions.suggested_categories,
+        suggested_materials: suggestions.suggested_materials,
+        suggested_house: suggestions.suggested_house,
+        business_angle: suggestions.business_angle,
+      },
+      { onConflict: "note_id" }
+    );
+
     const synthèse = getSynthèseBusiness(byFamily);
     const nextBestActions = getNextBestActions(byFamily);
 
@@ -116,6 +129,7 @@ export async function POST(request: NextRequest) {
       synthèse,
       priorityLevel,
       nextBestActions,
+      suggestions,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur inconnue";

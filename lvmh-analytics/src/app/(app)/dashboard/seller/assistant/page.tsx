@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import {
   getSynthèseBusiness,
@@ -10,49 +10,12 @@ import {
   type TagsByFamily,
 } from "@/lib/assistantRetail";
 
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  }
-}
-
-type SpeechRecognition = {
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: (e: SpeechRecognitionEvent) => void;
-  onend: () => void;
-  onerror: (e: { error: string }) => void;
-};
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(i: number): SpeechRecognitionResult;
-  [i: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  length: number;
-  item(i: number): SpeechRecognitionAlternative;
-  [i: number]: SpeechRecognitionAlternative;
-  isFinal: boolean;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
 export default function AssistantRetailPage() {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [transcript, setTranscript] = useState("");
-  const [interimTranscript, setInterimTranscript] = useState("");
   const [loadingTranscribe, setLoadingTranscribe] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
   const [loadingAnalyze, setLoadingAnalyze] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
   const [noteId, setNoteId] = useState<string | null>(null);
@@ -62,76 +25,97 @@ export default function AssistantRetailPage() {
     synthèse: SynthèseBusiness;
     priorityLevel: string | null;
     nextBestActions: string[];
+    suggestions?: {
+      suggested_categories: string[];
+      suggested_materials: string[];
+      suggested_house: string[];
+      business_angle: string | null;
+    };
   } | null>(null);
   const [saveExternalId, setSaveExternalId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastProcessedIndexRef = useRef(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  useEffect(() => {
-    const SpeechRecognitionAPI =
-      typeof window !== "undefined"
-        ? window.SpeechRecognition || window.webkitSpeechRecognition
-        : undefined;
-    if (SpeechRecognitionAPI) {
-      recognitionRef.current = new SpeechRecognitionAPI() as SpeechRecognition;
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = "fr-FR";
-      recognitionRef.current.onresult = (e: SpeechRecognitionEvent) => {
-        const r = e as unknown as { results: SpeechRecognitionResultList };
-        const results = r.results;
-        let newText = "";
-
-        for (let i = lastProcessedIndexRef.current; i < results.length; i++) {
-          const result = results[i];
-          const transcriptStr = result[0]?.transcript?.trim();
-          if (!transcriptStr) continue;
-
-          if (result.isFinal) {
-            newText = newText ? `${newText} ${transcriptStr}` : transcriptStr;
-            lastProcessedIndexRef.current = i + 1;
-          }
-        }
-
-        if (newText) {
-          setTranscript((prev) => (prev ? `${prev} ${newText}` : newText).trim());
-        }
-
-        const lastIdx = results.length - 1;
-        const lastResult = results[lastIdx];
-        if (lastResult && !lastResult.isFinal) {
-          setInterimTranscript(lastResult[0]?.transcript?.trim() ?? "");
-        } else {
-          setInterimTranscript("");
-        }
-      };
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      recognitionRef.current?.abort();
-    };
-  }, []);
-
-  const startRecording = () => {
-    setError(null);
-    setTranscript("");
-    setInterimTranscript("");
-    setSeconds(0);
-    lastProcessedIndexRef.current = 0;
-    setRecording(true);
-    recognitionRef.current?.start();
-    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
-  };
-
-  const stopRecording = () => {
-    setRecording(false);
-    recognitionRef.current?.stop();
+  const stopTimerAndStream = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    return () => stopTimerAndStream();
+  }, [stopTimerAndStream]);
+
+  const startRecording = async () => {
+    setError(null);
+    setTranscript("");
+    setSeconds(0);
+    chunksRef.current = [];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType: mime });
+      mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = async () => {
+        mediaRecorderRef.current = null;
+        const chunks = chunksRef.current;
+        if (chunks.length === 0) {
+          setRecording(false);
+          stopTimerAndStream();
+          return;
+        }
+        const blob = new Blob(chunks, { type: mime });
+        const file = new File([blob], "recording.webm", { type: blob.type });
+        setLoadingAudio(true);
+        try {
+          const form = new FormData();
+          form.append("audio", file);
+          const res = await fetch("/api/assistant/transcribe-audio", {
+            method: "POST",
+            body: form,
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error ?? "Erreur transcription audio");
+          setNoteId(data.noteId);
+          setSavedNoteText(data.note_text ?? "");
+          setAnalysis(null);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Erreur transcription");
+        } finally {
+          setLoadingAudio(false);
+        }
+        setRecording(false);
+        stopTimerAndStream();
+      };
+      recorder.start(2000);
+      setRecording(true);
+      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Microphone inaccessible. Autorisez l'accès au micro."
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    } else {
+      setRecording(false);
+      stopTimerAndStream();
     }
   };
 
@@ -178,6 +162,7 @@ export default function AssistantRetailPage() {
         synthèse: data.synthèse ?? getSynthèseBusiness(data.byFamily ?? {}),
         priorityLevel: data.priorityLevel ?? getPriorityLevel(data.byFamily ?? {}),
         nextBestActions: data.nextBestActions ?? getNextBestActions(data.byFamily ?? {}),
+        suggestions: data.suggestions ?? undefined,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
@@ -205,7 +190,11 @@ export default function AssistantRetailPage() {
     }
   };
 
-  const hasSpeechAPI = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  const hasMediaRecorder =
+    typeof window !== "undefined" &&
+    typeof navigator !== "undefined" &&
+    !!navigator.mediaDevices?.getUserMedia &&
+    typeof MediaRecorder !== "undefined";
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 text-neutral-100">
@@ -220,15 +209,15 @@ export default function AssistantRetailPage() {
         </div>
       )}
 
-      {/* Enregistrement */}
+      {/* Enregistrement (MediaRecorder + Mistral Voxtral) */}
       <Card className="mb-6 p-5">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">
           Enregistrement
         </h2>
-        {hasSpeechAPI ? (
+        {hasMediaRecorder ? (
           <>
             <div className="flex flex-wrap items-center gap-3">
-              {!recording ? (
+              {!recording && !loadingAudio && (
                 <button
                   type="button"
                   onClick={startRecording}
@@ -236,13 +225,15 @@ export default function AssistantRetailPage() {
                 >
                   Démarrer enregistrement
                 </button>
-              ) : (
+              )}
+              {(recording || loadingAudio) && (
                 <button
                   type="button"
                   onClick={stopRecording}
-                  className="rounded-lg bg-red-900/80 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-red-800"
+                  disabled={loadingAudio}
+                  className="rounded-lg bg-red-900/80 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-red-800 disabled:opacity-50"
                 >
-                  Arrêter
+                  {loadingAudio ? "Transcription en cours…" : "Arrêter"}
                 </button>
               )}
               {recording && (
@@ -252,18 +243,18 @@ export default function AssistantRetailPage() {
               )}
             </div>
             <p className="mt-2 text-[10px] text-neutral-500">
-              La reconnaissance vocale s'affiche en direct. Cliquez sur « Arrêter » puis « Envoyer » pour transcrire et nettoyer.
+              Enregistrement continu au micro (API MediaRecorder). À l&apos;arrêt, transcription automatique par Mistral Voxtral.
             </p>
           </>
         ) : (
           <p className="text-sm text-neutral-400">
-            Votre navigateur ne supporte pas la reconnaissance vocale. Saisissez ou collez le texte ci‑dessous.
+            Micro ou MediaRecorder non disponible. Saisissez ou collez le texte ci‑dessous.
           </p>
         )}
 
         <div className="mt-4">
           <label className="block text-[10px] uppercase tracking-wider text-neutral-500">
-            Transcription
+            Ou saisir / coller le texte
           </label>
           <textarea
             value={transcript}
@@ -272,11 +263,6 @@ export default function AssistantRetailPage() {
             rows={6}
             className="mt-1.5 w-full rounded-lg border border-neutral-700/80 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none"
           />
-          {recording && interimTranscript && (
-            <p className="mt-2 text-sm italic text-neutral-500">
-              En cours : {interimTranscript}
-            </p>
-          )}
           <button
             type="button"
             onClick={handleTranscribe}
@@ -331,6 +317,81 @@ export default function AssistantRetailPage() {
               )}
             </div>
           </Card>
+
+          {analysis.suggestions && (
+            <Card className="mb-6 border-neutral-700/80 bg-neutral-900/40 p-5">
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                Suggested Retail Strategy
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="mb-1.5 text-[10px] uppercase tracking-wider text-neutral-500">
+                    Catégories suggérées
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {analysis.suggestions.suggested_categories.length > 0 ? (
+                      analysis.suggestions.suggested_categories.map((c) => (
+                        <span
+                          key={c}
+                          className="rounded border border-neutral-600 bg-neutral-800/80 px-2 py-1 text-[11px] text-neutral-200"
+                        >
+                          {c}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-neutral-500">—</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-1.5 text-[10px] uppercase tracking-wider text-neutral-500">
+                    Matières suggérées
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {analysis.suggestions.suggested_materials.length > 0 ? (
+                      analysis.suggestions.suggested_materials.map((m) => (
+                        <span
+                          key={m}
+                          className="rounded border border-neutral-600 bg-neutral-800/80 px-2 py-1 text-[11px] text-neutral-200"
+                        >
+                          {m}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-neutral-500">—</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-1.5 text-[10px] uppercase tracking-wider text-neutral-500">
+                    Maison prioritaire
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {analysis.suggestions.suggested_house.length > 0 ? (
+                      analysis.suggestions.suggested_house.map((h) => (
+                        <span
+                          key={h}
+                          className="rounded border border-amber-800/60 bg-amber-950/30 px-2 py-1 text-[11px] text-amber-200"
+                        >
+                          {h}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-neutral-500">—</span>
+                    )}
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="mb-1.5 text-[10px] uppercase tracking-wider text-neutral-500">
+                    Angle commercial
+                  </p>
+                  <p className="text-sm text-neutral-300">
+                    {analysis.suggestions.business_angle || "—"}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
 
           <Card className="p-5">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
