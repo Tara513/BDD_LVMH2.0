@@ -17,6 +17,7 @@ const NAV_ITEMS_BY_ROLE: Record<UserRole, Array<{ href: string; label: string }>
   admin: [
     { href: "/dashboard/admin/upload", label: "Upload & Analyse" },
     { href: "/dashboard/admin/dashboard", label: "Dashboard" },
+    { href: "/dashboard/admin/taxonomy", label: "Taxonomie & Tags" },
   ],
 };
 

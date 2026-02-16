@@ -133,7 +133,7 @@ export default function AdminUploadPage() {
             title="Fichier CSV"
             description="Vérification des colonnes et aperçu des 5 premières lignes"
           />
-          <CardBody className="space-y-6">
+          <CardBody className="flex flex-col gap-8">
             <div>
               <label className="mb-2 block text-xs text-neutral-400">Fichier</label>
               <input

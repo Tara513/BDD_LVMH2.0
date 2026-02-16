@@ -4,7 +4,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase environment variables");
+  throw new Error(
+    "Variables Supabase manquantes. Créez le fichier lvmh-analytics/.env.local avec :\n" +
+      "NEXT_PUBLIC_SUPABASE_URL=votre_url\n" +
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_clé_anon"
+  );
 }
 
 // Client Supabase pour usage côté client (React components)
