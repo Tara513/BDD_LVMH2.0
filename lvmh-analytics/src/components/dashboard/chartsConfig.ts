@@ -27,5 +27,5 @@ export const AXIS_STYLE = {
 
 export const BAR_RADIUS = [4, 4, 0, 0] as const;
 
-/** Taille des camemberts : graphique plus grand, place pour la légende */
-export const PIE_SIZE = { height: 300, outerRadius: 78 };
+/** Taille des camemberts : donut plus gros, légende à droite */
+export const PIE_SIZE = { height: 360, outerRadius: 100, innerRadius: 58 };

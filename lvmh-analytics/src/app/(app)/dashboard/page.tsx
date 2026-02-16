@@ -98,23 +98,32 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="Budget Distribution" description="Entry / Core / Premium / VIC">
-          <div className="h-64 w-full">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={budgetDistributionData} dataKey="value" nameKey="name" outerRadius={80}>
+          <div className="h-80 w-full overflow-visible">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart margin={{ top: 24, right: 200, bottom: 24, left: 24 }}>
+                <Pie
+                  data={budgetDistributionData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="38%"
+                  cy="50%"
+                  innerRadius={58}
+                  outerRadius={100}
+                  label={({ name, percent }) => (percent >= 0.01 ? `${(percent * 100).toFixed(1)}%` : "")}
+                  labelLine={false}
+                >
                   {budgetDistributionData.map((entry, index) => (
                     <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#050505",
-                    borderRadius: 8,
-                    border: "1px solid #262626",
-                    fontSize: 12,
-                  }}
+                <Legend
+                  layout="vertical"
+                  align="right"
+                  verticalAlign="middle"
+                  iconSize={10}
+                  iconType="square"
+                  wrapperStyle={{ paddingLeft: 16 }}
                 />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
