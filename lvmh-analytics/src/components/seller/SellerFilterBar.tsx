@@ -8,6 +8,8 @@ import {
   FILTER_LABELS,
   PREFERRED_FILTER_ORDER,
   getTagLabel,
+  RECOMMENDATION_PRIORITY_OPTIONS,
+  RECOMMENDATION_ACTIVATION_OPTIONS,
   type FilterState,
 } from "@/lib/sellerFilters";
 
@@ -56,7 +58,9 @@ export function SellerFilterBar({ availableOptions }: Props) {
 
   const hasActiveFilters =
     state.searchId ||
-    Object.values(state.byFamily).some((arr) => arr.length > 0);
+    Object.values(state.byFamily).some((arr) => arr.length > 0) ||
+    !!state.recommendationPriority ||
+    !!state.recommendationActivation;
 
   const families = Object.keys(availableOptions)
     .filter((f) => FILTER_LABELS[f] && availableOptions[f].length > 0)
@@ -83,6 +87,44 @@ export function SellerFilterBar({ availableOptions }: Props) {
             placeholder="ex. CA_065"
             className="w-32 rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none"
           />
+        </div>
+
+        {/* Filtres recommandation */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+            Reco. priorité
+          </span>
+          <select
+            value={state.recommendationPriority ?? ""}
+            onChange={(e) =>
+              updateUrl({ ...state, recommendationPriority: e.target.value })
+            }
+            className="rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none"
+          >
+            {RECOMMENDATION_PRIORITY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+            Reco. activation
+          </span>
+          <select
+            value={state.recommendationActivation ?? ""}
+            onChange={(e) =>
+              updateUrl({ ...state, recommendationActivation: e.target.value })
+            }
+            className="rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none min-w-[11rem]"
+          >
+            {RECOMMENDATION_ACTIVATION_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Filtres par famille (uniquement si la famille existe en base) */}

@@ -4,6 +4,8 @@ import Papa from "papaparse";
 import { cleanTranscription, basicCleanRow, applyRgpd } from "@/lib/cleaning";
 import { applyTaxonomyRules, type TaxonomyTag } from "@/lib/taxonomy";
 import { tagNoteWithMistral } from "@/lib/mistral";
+import { getAutomationRecommendation } from "@/lib/nextBestActionAutomation";
+import type { TagsByFamily } from "@/lib/nextBestActionAutomation";
 
 const BATCH_SIZE = 50;
 const MISTRAL_BATCH_SIZE = 10;
@@ -210,6 +212,31 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+    }
+
+    const byNoteId = new Map<string, { tag: string; tag_family: string }[]>();
+    for (const t of allTags) {
+      const list = byNoteId.get(t.note_id) ?? [];
+      list.push({ tag: t.tag, tag_family: t.tag_family });
+      byNoteId.set(t.note_id, list);
+    }
+    for (const [noteId, entries] of byNoteId) {
+      const byFamily: TagsByFamily = {};
+      for (const { tag_family, tag } of entries) {
+        if (!byFamily[tag_family]) byFamily[tag_family] = [];
+        if (!byFamily[tag_family].includes(tag)) byFamily[tag_family].push(tag);
+      }
+      const rec = getAutomationRecommendation(byFamily);
+      await supabase.from("automation_recommendations").upsert(
+        {
+          note_id: noteId,
+          priority_level: rec.priority_level,
+          activation_type: rec.activation_type,
+          justification: rec.justification,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "note_id" }
+      );
     }
 
     const tagCounts: Record<string, number> = {};

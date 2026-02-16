@@ -8,6 +8,7 @@ import {
   getPriorityLevel,
   type TagsByFamily,
 } from "@/lib/assistantRetail";
+import { getAutomationRecommendation } from "@/lib/nextBestActionAutomation";
 
 function getRoleFromRequest(request: NextRequest): "seller" | "admin" | null {
   const auth = request.cookies.get("lvmh_mock_auth")?.value;
@@ -93,6 +94,18 @@ export async function POST(request: NextRequest) {
       await supabase.from("note_tags").delete().eq("note_id", noteId);
       await supabase.from("note_tags").insert(tagsToInsert);
     }
+
+    const recommendation = getAutomationRecommendation(byFamily);
+    await supabase.from("automation_recommendations").upsert(
+      {
+        note_id: noteId,
+        priority_level: recommendation.priority_level,
+        activation_type: recommendation.activation_type,
+        justification: recommendation.justification,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "note_id" }
+    );
 
     const synthèse = getSynthèseBusiness(byFamily);
     const nextBestActions = getNextBestActions(byFamily);

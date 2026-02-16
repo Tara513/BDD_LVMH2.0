@@ -252,7 +252,7 @@ export default function AssistantRetailPage() {
               )}
             </div>
             <p className="mt-2 text-[10px] text-neutral-500">
-              La reconnaissance vocale s’affiche en direct. Cliquez sur « Arrêter » puis « Envoyer » pour transcrire et nettoyer.
+              La reconnaissance vocale s'affiche en direct. Cliquez sur « Arrêter » puis « Envoyer » pour transcrire et nettoyer.
             </p>
           </>
         ) : (
@@ -332,82 +332,12 @@ export default function AssistantRetailPage() {
             </div>
           </Card>
 
-          <Card className="mb-6 p-5">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              Synthèse Business
-            </h2>
-            <dl className="space-y-2 text-sm">
-              {analysis.synthèse.motivationPrincipale && (
-                <div>
-                  <dt className="text-neutral-500">Motivation principale</dt>
-                  <dd className="text-neutral-200">{analysis.synthèse.motivationPrincipale}</dd>
-                </div>
-              )}
-              {analysis.synthèse.sensibilitéBudget && (
-                <div>
-                  <dt className="text-neutral-500">Sensibilité budget</dt>
-                  <dd className="text-neutral-200">{analysis.synthèse.sensibilitéBudget}</dd>
-                </div>
-              )}
-              {analysis.synthèse.urgenceDétectée && (
-                <div>
-                  <dt className="text-neutral-500">Urgence détectée</dt>
-                  <dd className="text-neutral-200">{analysis.synthèse.urgenceDétectée}</dd>
-                </div>
-              )}
-              {analysis.synthèse.typeAchat && (
-                <div>
-                  <dt className="text-neutral-500">Type d’achat</dt>
-                  <dd className="text-neutral-200">{analysis.synthèse.typeAchat}</dd>
-                </div>
-              )}
-              {analysis.priorityLevel && (
-                <div>
-                  <dt className="text-neutral-500">Client Priority Level</dt>
-                  <dd>
-                    <span
-                      className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
-                        analysis.priorityLevel === "High"
-                          ? "bg-amber-900/50 text-amber-200"
-                          : analysis.priorityLevel === "Medium"
-                            ? "bg-neutral-700 text-neutral-200"
-                            : "bg-neutral-800 text-neutral-400"
-                      }`}
-                    >
-                      {analysis.priorityLevel} Priority
-                    </span>
-                  </dd>
-                </div>
-              )}
-              {!analysis.synthèse.motivationPrincipale &&
-                !analysis.synthèse.sensibilitéBudget &&
-                !analysis.synthèse.urgenceDétectée &&
-                !analysis.synthèse.typeAchat &&
-                !analysis.priorityLevel && (
-                  <p className="text-neutral-500">Aucune donnée à afficher (tags vides).</p>
-                )}
-            </dl>
-          </Card>
-
-          <Card className="mb-6 p-5">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              Next Best Action
-            </h2>
-            <ul className="list-inside list-disc space-y-1 text-sm text-neutral-300">
-              {analysis.nextBestActions.length > 0 ? (
-                analysis.nextBestActions.map((a, i) => <li key={i}>{a}</li>)
-              ) : (
-                <li className="text-neutral-500">Aucune action recommandée (basée sur les tags).</li>
-              )}
-            </ul>
-          </Card>
-
           <Card className="p-5">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
               Sauvegarder dans fiche client
             </h2>
             <p className="mb-3 text-xs text-neutral-500">
-              Lier cette conversation à un client (ex. CA_065). Laissez vide pour garder l’ID actuel.
+              Lier cette conversation à un client (ex. CA_065). Laissez vide pour garder l'ID actuel.
             </p>
             <div className="flex gap-2">
               <input

@@ -29,10 +29,14 @@ export async function POST(request: NextRequest) {
 
     const cleaned = cleanTranscription(rawText);
     const mistralKey = process.env.MISTRAL_API_KEY;
-    const noteText =
-      mistralKey && cleaned.length > 50
-        ? await cleanTranscriptWithMistral(cleaned, mistralKey)
-        : cleaned;
+    let noteText = cleaned;
+    if (mistralKey && cleaned.length > 30) {
+      try {
+        noteText = await cleanTranscriptWithMistral(cleaned, mistralKey);
+      } catch {
+        noteText = cleaned;
+      }
+    }
 
     const supabase = await createClient();
     const externalId = `assistant_${Date.now()}`;

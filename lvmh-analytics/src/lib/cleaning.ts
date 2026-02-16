@@ -39,22 +39,46 @@ export function applyRgpd(
 }
 
 const FILLER_PHRASES = [
-  "euh", "bah", "ben", "du coup", "en fait", "voilà", "quoi", "genre",
-  "tu vois", "tu sais", "hein",
+  "euh", "bah", "ben", "bon", "du coup", "en fait", "voilà", "quoi", "genre",
+  "tu vois", "tu sais", "hein", "enfin", "hum", "eh bien",
+  "machin", "truc", "chose", "grosso modo", "en gros", "à peu près", "en quelque sorte",
+  "disons", "pour ainsi dire", "plus ou moins",
+  "là", "par exemple", "vous savez",
   "uh", "um", "you know", "i mean", "like", "kind of", "sort of",
   "basically", "so yeah",
   "allora", "diciamo", "tipo",
 ];
 
+/**
+ * Anonymise les données personnelles dans un texte (RGPD).
+ * Remplace emails et numéros de téléphone par des placeholders.
+ */
+export function redactPiiFromText(text: string): string {
+  if (typeof text !== "string") return "";
+  let out = text;
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  out = out.replace(emailRegex, "[EMAIL]");
+  const phoneRegex = /(?:\+33|0)\s*[1-9](?:[\s.-]*\d{2}){4}|(?:\+\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{2,4}[\s.-]?\d{2,4}[\s.-]?\d{0,4}/g;
+  out = out.replace(phoneRegex, "[TEL]");
+  return out;
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function cleanTranscription(text: string, _language?: string | null): string {
   if (typeof text !== "string") return "";
   let cleaned = text;
   for (const phrase of FILLER_PHRASES) {
-    const re = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+    const escaped = escapeRegex(phrase);
+    const re = new RegExp(`(?:^|[\\s.,;:!?])${escaped}(?=[\\s.,;:!?]|$)`, "gi");
     cleaned = cleaned.replace(re, " ");
   }
   cleaned = cleaned.replace(/\s+/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
-  return cleaned || text;
+  cleaned = cleaned.replace(/,{2,}/g, ",").replace(/\.{2,}/g, ".").replace(/\s*,\s*\./g, ".").replace(/\s*\.\s*,/g, ",").trim();
+  const normalized = cleaned || text;
+  return redactPiiFromText(normalized);
 }
 
 export function basicCleanRow(row: Record<string, unknown>): Record<string, unknown> {

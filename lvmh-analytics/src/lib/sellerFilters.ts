@@ -7,7 +7,30 @@ export type FilterState = {
   searchId: string;
   /** Pour chaque famille, liste de tags sélectionnés (vide = pas de filtre). */
   byFamily: Record<string, string[]>;
+  /** Filtre recommandation : priorité (High, Medium, Low). */
+  recommendationPriority: string;
+  /** Filtre recommandation : type d'activation. */
+  recommendationActivation: string;
 };
+
+/** Options pour le filtre Priorité (recommandation). */
+export const RECOMMENDATION_PRIORITY_OPTIONS = [
+  { value: "", label: "Toutes" },
+  { value: "High", label: "Haute" },
+  { value: "Medium", label: "Moyenne" },
+  { value: "Low", label: "Basse" },
+] as const;
+
+/** Options pour le filtre Activation (recommandation). */
+export const RECOMMENDATION_ACTIVATION_OPTIONS = [
+  { value: "", label: "Tous" },
+  { value: "Follow-Up", label: "Follow-Up" },
+  { value: "Appointment", label: "Rendez-vous" },
+  { value: "Product Recommendation", label: "Recommandation produit" },
+  { value: "Event Invitation", label: "Invitation événement" },
+  { value: "Immediate Follow-Up", label: "Suivi immédiat" },
+  { value: "Re-engagement Action", label: "Ré-engagement" },
+] as const;
 
 /** Labels courts pour l'UI (familles et valeurs réelles). */
 export const FILTER_LABELS: Record<string, string> = {
@@ -94,7 +117,20 @@ export function parseFilterState(searchParams: Record<string, string | string[] 
     }
   }
   const searchId = typeof searchParams.q === "string" ? searchParams.q.trim() : "";
-  return { searchId, byFamily };
+  const recommendationPriority =
+    typeof searchParams.recommendation_priority === "string"
+      ? searchParams.recommendation_priority.trim()
+      : "";
+  const recommendationActivation =
+    typeof searchParams.recommendation_activation === "string"
+      ? searchParams.recommendation_activation.trim()
+      : "";
+  return {
+    searchId,
+    byFamily,
+    recommendationPriority,
+    recommendationActivation,
+  };
 }
 
 /** Construit l'URL des filtres (sans page). */
@@ -104,5 +140,7 @@ export function buildFilterQuery(state: FilterState): string {
   for (const [family, tags] of Object.entries(state.byFamily)) {
     if (tags.length) params.set(family, tags.join(","));
   }
+  if (state.recommendationPriority) params.set("recommendation_priority", state.recommendationPriority);
+  if (state.recommendationActivation) params.set("recommendation_activation", state.recommendationActivation);
   return params.toString();
 }

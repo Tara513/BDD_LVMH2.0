@@ -11,6 +11,8 @@ import {
   FILTER_LABELS,
   DEFAULT_FILTER_OPTIONS,
 } from "@/lib/sellerFilters";
+import { getAutomationRecommendation } from "@/lib/nextBestActionAutomation";
+import type { TagsByFamily } from "@/lib/nextBestActionAutomation";
 
 const PAGE_SIZE = 24;
 
@@ -44,6 +46,50 @@ async function getFilteredNoteIds(
     else ids = ids.filter((id) => set.has(id));
   }
   return ids;
+}
+
+/** Récupère les note_ids dont la recommandation correspond à priorité et/ou activation.
+ * Utilise la table automation_recommendations, puis complète avec les fiches qui ont des tags
+ * mais pas encore de ligne (recommandation calculée à la volée).
+ */
+async function getNoteIdsByRecommendation(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase-server").createClient>>,
+  priority: string,
+  activation: string
+): Promise<string[] | null> {
+  const p = priority?.trim() || "";
+  const a = activation?.trim() || "";
+  if (!p && !a) return null;
+
+  const resultSet = new Set<string>();
+
+  let query = supabase.from("automation_recommendations").select("note_id");
+  if (p) query = query.eq("priority_level", p);
+  if (a) query = query.eq("activation_type", a);
+  const { data: tableRows } = await query;
+  for (const r of tableRows ?? []) {
+    resultSet.add((r as { note_id: string }).note_id);
+  }
+
+  const { data: tagRows } = await supabase
+    .from("note_tags")
+    .select("note_id, tag, tag_family");
+  const byNoteId: Record<string, TagsByFamily> = {};
+  for (const row of (tagRows ?? []) as { note_id: string; tag: string; tag_family: string }[]) {
+    const nid = row.note_id;
+    if (!byNoteId[nid]) byNoteId[nid] = {};
+    if (!byNoteId[nid][row.tag_family]) byNoteId[nid][row.tag_family] = [];
+    if (!byNoteId[nid][row.tag_family].includes(row.tag)) byNoteId[nid][row.tag_family].push(row.tag);
+  }
+  for (const [noteId, byFamily] of Object.entries(byNoteId)) {
+    const rec = getAutomationRecommendation(byFamily);
+    const matchPriority = !p || rec.priority_level === p;
+    const matchActivation = !a || rec.activation_type === a;
+    if (matchPriority && matchActivation) resultSet.add(noteId);
+  }
+
+  const ids = Array.from(resultSet);
+  return ids.length > 0 ? ids : (p || a ? [] : null);
 }
 
 /** Options de filtres : familles et valeurs réellement présentes en base. */
@@ -103,10 +149,25 @@ export default async function SellerFichesPage({
   const page = Math.max(1, parseInt(String(params.page || "1"), 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
 
-  const [availableOptions, filteredIds] = await Promise.all([
+  const [availableOptions, tagFilteredIds, recommendationFilteredIds] = await Promise.all([
     getAvailableFilterOptions(supabase),
     getFilteredNoteIds(supabase, filterState.byFamily),
+    getNoteIdsByRecommendation(
+      supabase,
+      filterState.recommendationPriority ?? "",
+      filterState.recommendationActivation ?? ""
+    ),
   ]);
+
+  let filteredIds: string[] | null = null;
+  if (tagFilteredIds !== null && recommendationFilteredIds !== null) {
+    const set = new Set(recommendationFilteredIds);
+    filteredIds = tagFilteredIds.filter((id) => set.has(id));
+  } else if (tagFilteredIds !== null) {
+    filteredIds = tagFilteredIds;
+  } else if (recommendationFilteredIds !== null) {
+    filteredIds = recommendationFilteredIds;
+  }
 
   let noteList: NoteRow[];
   let total: number;

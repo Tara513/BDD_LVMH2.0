@@ -12,6 +12,9 @@ import {
   type TagEntry,
   type TagsByFamily,
 } from "@/lib/sellerFiche";
+import { getAutomationRecommendation } from "@/lib/nextBestActionAutomation";
+import { applyTaxonomyRules } from "@/lib/taxonomy";
+import { cleanTranscription } from "@/lib/cleaning";
 
 type NoteRow = {
   id: string;
@@ -89,6 +92,40 @@ export default async function SellerClientFichePage({
   const byFamily = tagsByFamily(entries);
   const recommendations = getRecommendations(byFamily);
   const tagGroups = getTagGroupsForAccordion(byFamily);
+
+  const { data: automationRow } = await supabase
+    .from("automation_recommendations")
+    .select("priority_level, activation_type, justification")
+    .eq("note_id", id)
+    .maybeSingle();
+
+  const byFamilyForAutomation =
+    Object.keys(byFamily).length > 0
+      ? byFamily
+      : (() => {
+          const noteText = (note.note_text ?? "").trim();
+          if (!noteText) return {};
+          const ruleTags = applyTaxonomyRules(noteText);
+          const out: TagsByFamily = {};
+          for (const t of ruleTags) {
+            if (!out[t.tag_family]) out[t.tag_family] = [];
+            if (!out[t.tag_family].includes(t.tag)) out[t.tag_family].push(t.tag);
+          }
+          return out;
+        })();
+
+  const automationFromTags =
+    Object.keys(byFamilyForAutomation).length > 0
+      ? getAutomationRecommendation(byFamilyForAutomation)
+      : null;
+
+  const businessRec = automationRow
+    ? {
+        priority_level: (automationRow.priority_level as "High" | "Medium" | "Low") || automationFromTags?.priority_level || "Low",
+        activation_type: automationRow.activation_type || automationFromTags?.activation_type || "Follow-Up",
+        justification: automationRow.justification || automationFromTags?.justification || "—",
+      }
+    : automationFromTags;
 
   const segment = byFamily["Client_Segment"] ?? [];
   const frequency = byFamily["Frequency"] ?? [];
@@ -234,6 +271,42 @@ export default async function SellerClientFichePage({
         </Card>
       )}
 
+      <Card className="mb-6 border-neutral-800 bg-neutral-950/50 p-5">
+        <SectionTitle title="Business Recommendation" />
+        {businessRec ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-neutral-500">Priority</span>
+              <span
+                className={`inline-block rounded px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider ${
+                  businessRec.priority_level === "High"
+                    ? "bg-amber-950/60 text-amber-200/90 border border-amber-800/50"
+                    : businessRec.priority_level === "Medium"
+                      ? "bg-neutral-800 text-neutral-200 border border-neutral-600"
+                      : "bg-neutral-800/60 text-neutral-400 border border-neutral-700"
+                }`}
+              >
+                {businessRec.priority_level}
+              </span>
+            </div>
+            <div>
+              <span className="text-neutral-500">Activation</span>
+              <p className="mt-0.5 font-medium text-white">{businessRec.activation_type}</p>
+            </div>
+            <div>
+              <span className="text-neutral-500">Justification</span>
+              <p className="mt-0.5 text-neutral-300 leading-relaxed">
+                {businessRec.justification}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-500">
+            Aucune recommandation. Passez par l’Assistant Retail ou l’import CSV pour analyser la fiche et générer automatiquement une recommandation à partir des tags.
+          </p>
+        )}
+      </Card>
+
       <Card className="mb-6 p-5">
         <SectionTitle title="Tags détaillés" />
         <div className="space-y-2">
@@ -260,7 +333,7 @@ export default async function SellerClientFichePage({
       <Card className="p-5">
         <SectionTitle title="Note client" />
         <p className="whitespace-pre-wrap text-sm text-neutral-200">
-          {(note.note_text ?? "").trim() || "—"}
+          {cleanTranscription((note.note_text ?? "").trim()) || "—"}
         </p>
       </Card>
     </div>
