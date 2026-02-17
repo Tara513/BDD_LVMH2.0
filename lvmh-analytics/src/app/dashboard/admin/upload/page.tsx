@@ -190,7 +190,7 @@ export default function AdminUploadPage() {
               type="button"
               onClick={launchAnalysis}
               disabled={!file || status === "uploading"}
-              className="rounded-full bg-neutral-100 px-6 py-2.5 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-10 rounded-full bg-neutral-100 px-6 py-2.5 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === "uploading" ? "Analyse en cours…" : "Lancer l'analyse"}
             </button>
