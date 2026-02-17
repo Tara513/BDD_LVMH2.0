@@ -5,7 +5,7 @@ import type { DashboardKpis } from "@/lib/dashboardStats";
 
 export function AdminKpiCards({ kpis }: { kpis: DashboardKpis }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
       <Card className="p-4">
         <p className="text-[11px] uppercase tracking-wider text-neutral-500">Total clients</p>
         <p className="mt-1.5 text-2xl font-light tabular-nums text-neutral-50">{kpis.totalClients}</p>
@@ -22,10 +22,6 @@ export function AdminKpiCards({ kpis }: { kpis: DashboardKpis }) {
         <p className="mt-1.5 text-2xl font-light tabular-nums text-neutral-50">
           {kpis.vicPct != null ? `${kpis.vicPct}%` : "—"}
         </p>
-      </Card>
-      <Card className="p-4">
-        <p className="text-[11px] uppercase tracking-wider text-neutral-500">Taux de tagging taxonomie</p>
-        <p className="mt-1.5 text-2xl font-light tabular-nums text-neutral-50">{kpis.taggingRate}%</p>
       </Card>
     </div>
   );
