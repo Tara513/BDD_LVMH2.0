@@ -38,7 +38,7 @@ export const Sidebar = ({ role }: { role: UserRole }) => {
   return (
     <aside className="fixed inset-y-0 left-0 z-10 flex w-60 flex-col border-r border-neutral-900 bg-neutral-950 px-6 py-6">
       <div className="mb-8">
-        <div className="text-[10px] tracking-[0.35em] text-neutral-500">LVMH</div>
+        <div className="text-[10px] font-semibold tracking-[0.2em] text-neutral-400">FENDI</div>
         <div className="mt-2 text-xs text-neutral-500">Client Analytics Suite</div>
       </div>
 

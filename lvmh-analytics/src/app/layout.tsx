@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LVMH Client Analytics",
-  description: "Client Analytics Suite",
+  title: "FENDI Client Analytics",
+  description: "FENDI Client Analytics Suite",
 };
 
 export default function RootLayout({
