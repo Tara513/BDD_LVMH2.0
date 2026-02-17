@@ -66,7 +66,7 @@ export default function AdminTaxonomyPage() {
         placeholder="Rechercher un tag, une famille ou un mot-clé…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-900/80 px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
+        className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
       />
 
       {/* Section : Tous les tags */}
@@ -83,7 +83,7 @@ export default function AdminTaxonomyPage() {
               filteredAllTags.map(({ family, tag }) => (
                 <span
                   key={`${family}-${tag}`}
-                  className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900/80 px-3 py-1.5 text-xs text-neutral-200"
+                  className="inline-flex items-center rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-200"
                 >
                   <span className="text-neutral-500">{family}</span>
                   <span className="mx-1.5 text-neutral-600">·</span>

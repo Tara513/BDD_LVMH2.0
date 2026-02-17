@@ -71,7 +71,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
     );
 
   return (
-    <div className="rounded-xl border border-neutral-800/80 bg-neutral-900/40 p-4">
+    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
       <div className="flex flex-wrap items-center gap-3">
         {/* Recherche par ID client */}
         <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
             onBlur={() => setSearchId(searchInput)}
             onKeyDown={(e) => e.key === "Enter" && setSearchId(searchInput)}
             placeholder="ex. CA_065"
-            className="w-32 rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none"
+            className="w-32 rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-neutral-600 focus:outline-none"
           />
         </div>
 
@@ -99,7 +99,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
             onChange={(e) =>
               updateUrl({ ...state, recommendationPriority: e.target.value })
             }
-            className="rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none"
+            className="rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none"
           >
             {RECOMMENDATION_PRIORITY_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -117,7 +117,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
             onChange={(e) =>
               updateUrl({ ...state, recommendationActivation: e.target.value })
             }
-            className="rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none min-w-[11rem]"
+            className="rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none min-w-[11rem]"
           >
             {RECOMMENDATION_ACTIVATION_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -139,7 +139,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
                 const v = e.target.value;
                 setFamily(family, v ? [v] : []);
               }}
-              className="rounded-lg border border-neutral-700/80 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none"
+              className="rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 py-1.5 text-xs text-neutral-200 focus:border-neutral-600 focus:outline-none"
             >
               <option value="">Tous</option>
               {availableOptions[family].map((tag) => (
@@ -155,7 +155,7 @@ export function SellerFilterBar({ availableOptions }: Props) {
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg border border-neutral-700/80 px-2.5 py-1.5 text-[11px] text-neutral-500 transition-colors hover:border-neutral-600 hover:text-neutral-300"
+            className="rounded-lg border border-neutral-700 px-2.5 py-1.5 text-[11px] text-neutral-500 transition-colors hover:border-neutral-600 hover:text-neutral-300"
           >
             Réinitialiser
           </button>

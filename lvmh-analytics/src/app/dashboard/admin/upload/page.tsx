@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { useState, useCallback, useRef } from "react";
 import Papa from "papaparse";
 
 const REQUIRED_COLUMNS = ["note_text", "Note", "Transcription", "transcription"];
@@ -39,9 +38,10 @@ export default function AdminUploadPage() {
   const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
   const [progress, setProgress] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
+  const processFile = useCallback((f: File | null) => {
     setError(null);
     setStatus("idle");
     setPreview(null);
@@ -51,7 +51,7 @@ export default function AdminUploadPage() {
       return;
     }
     if (!f.name.toLowerCase().endsWith(".csv")) {
-      setError("Seuls les fichiers CSV sont acceptés.");
+      setError("Please use a CSV file.");
       setFile(null);
       return;
     }
@@ -62,12 +62,12 @@ export default function AdminUploadPage() {
       const text = String(reader.result ?? "");
       const { rows, headers } = parseCsv(text);
       if (!rows.length) {
-        setError("Le fichier ne contient aucune ligne.");
+        setError("The file is empty.");
         return;
       }
       const noteCol = getNoteColumn(headers);
       if (!noteCol) {
-        setError("Colonne requise manquante : note_text, Note ou Transcription.");
+        setError("Required column not found.");
         return;
       }
       setPreview({ headers, rows: rows.slice(0, PREVIEW_ROWS) });
@@ -75,22 +75,49 @@ export default function AdminUploadPage() {
     reader.readAsText(f, "UTF-8");
   }, []);
 
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    processFile(e.target.files?.[0] ?? null);
+  }, [processFile]);
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    processFile(e.dataTransfer.files?.[0] ?? null);
+  }, [processFile]);
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const onDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const removeFile = useCallback(() => {
+    setFile(null);
+    setPreview(null);
+    setError(null);
+    setResult(null);
+    setStatus("idle");
+    if (inputRef.current) inputRef.current.value = "";
+  }, []);
+
   const launchAnalysis = async () => {
-    if (!file) {
-      setError("Veuillez sélectionner un fichier CSV.");
-      return;
-    }
+    if (!file) return;
     setError(null);
     setResult(null);
     setStatus("uploading");
-    setProgress("Envoi du fichier…");
+    setProgress("");
 
     try {
       const formData = new FormData();
       formData.set("file", file);
       formData.set("name", name || file.name);
 
-      setProgress("Nettoyage RGPD et enregistrement…");
       const res = await fetch("/api/analyze-dataset", {
         method: "POST",
         body: formData,
@@ -99,13 +126,11 @@ export default function AdminUploadPage() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.error || `Erreur ${res.status}`);
+        setError(data.error || "Something went wrong.");
         setStatus("error");
         return;
       }
 
-      setProgress("Tagging (taxonomie + Mistral)…");
-      setProgress("Analyse terminée.");
       setStatus("done");
       setResult({
         datasetId: data.datasetId ?? "",
@@ -115,142 +140,207 @@ export default function AdminUploadPage() {
         tagsPreview: data.tagsPreview ?? [],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur réseau.");
+      setError(err instanceof Error ? err.message : "Network error.");
       setStatus("error");
     }
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
-      <div className="mx-auto max-w-3xl px-8 py-12">
-        <h1 className="mb-2 text-2xl font-semibold tracking-tight">Upload & Analyse</h1>
-        <p className="mb-8 text-sm text-neutral-500">
-          Importez un CSV (colonne note_text, Note ou Transcription). Nettoyage RGPD, taxonomie et tagging Mistral.
-        </p>
+    <div className="min-h-[80vh] animate-in fade-in duration-500">
+      <div className="mx-auto max-w-2xl px-6 py-16">
+        {/* Header */}
+        <header className="mb-16 text-center">
+          <h1 className="text-3xl font-extralight tracking-tight text-neutral-50 md:text-4xl">
+            Data Intelligence Studio
+          </h1>
+          <p className="mt-3 text-sm font-light tracking-wide text-neutral-500">
+            Import and analyze client insights
+          </p>
+        </header>
 
-        <Card>
-          <CardHeader
-            title="Fichier CSV"
-            description="Vérification des colonnes et aperçu des 5 premières lignes"
+        {/* Drop zone */}
+        <div className="mb-10">
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".csv"
+            onChange={onFileChange}
+            className="sr-only"
+            aria-label="Select CSV file"
           />
-          <CardBody className="flex flex-col gap-8">
-            <div>
-              <label className="mb-2 block text-xs text-neutral-400">Fichier</label>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={onFileChange}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={status === "uploading"}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className={`group relative flex w-full flex-col items-center justify-center rounded-lg border py-16 transition-all duration-300 ease-in-out disabled:pointer-events-none ${
+              isDragOver
+                ? "scale-[1.01] border-yellow-500/80 bg-neutral-900"
+                : "border-neutral-800 bg-black hover:border-yellow-600/70 hover:bg-neutral-950"
+            }`}
+          >
+            <svg
+              className="mb-4 h-10 w-10 text-neutral-500 transition-colors group-hover:text-yellow-500"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              viewBox="0 0 24 24"
+              aria-hidden
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span className="text-sm font-light tracking-wide text-neutral-400">
+              Drag & Drop your CSV file
+            </span>
+            <span className="mt-1 text-xs text-neutral-600">
+              or click to browse
+            </span>
+          </button>
+        </div>
+
+        {/* File state */}
+        {file && (
+          <div className="mb-8 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <svg className="h-4 w-4 shrink-0 text-neutral-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="truncate text-sm font-light text-neutral-300">{file.name}</span>
+              </div>
+              <button
+                type="button"
+                onClick={removeFile}
                 disabled={status === "uploading"}
-                className="block w-full text-xs text-neutral-400 file:mr-4 file:rounded-full file:border-0 file:bg-neutral-800 file:px-4 file:py-2 file:text-neutral-200"
+                className="shrink-0 rounded p-1 text-neutral-500 transition hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
+                aria-label="Remove file"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Preview table */}
+        {preview && (
+          <div className="mb-10 animate-in fade-in duration-300">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full border border-neutral-700 bg-neutral-900 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                Data validated
+              </span>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-neutral-800 bg-black">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-neutral-800/80">
+                    {preview.headers.slice(0, 4).map((h) => (
+                      <th key={h} className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+                        {h}
+                      </th>
+                    ))}
+                    {preview.headers.length > 4 && (
+                      <th className="px-4 py-3 text-[11px] text-neutral-600">—</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.rows.map((row, i) => (
+                    <tr key={i} className="border-b border-neutral-800/50 last:border-0">
+                      {preview.headers.slice(0, 4).map((h) => (
+                        <td key={h} className="max-w-[180px] truncate px-4 py-3 text-xs font-light text-neutral-400">
+                          {row[h] ?? "—"}
+                        </td>
+                      ))}
+                      {preview.headers.length > 4 && (
+                        <td className="px-4 py-3 text-neutral-600">—</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="mb-8 animate-in fade-in rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-xs font-light text-neutral-400">
+            {error}
+          </div>
+        )}
+
+        {/* Loading state */}
+        {status === "uploading" && (
+          <div className="mb-10 animate-in fade-in duration-300">
+            <p className="mb-2 text-xs font-light text-neutral-500">Analyzing data…</p>
+            <div className="h-0.5 w-full overflow-hidden rounded-full bg-neutral-800">
+              <div
+                className="h-full w-1/3 rounded-full bg-yellow-600"
+                style={{ animation: "upload-shimmer 1.8s ease-in-out infinite" }}
               />
             </div>
+          </div>
+        )}
 
-            {preview && (
-              <div>
-                <p className="mb-2 text-xs text-neutral-500">Aperçu ({preview.rows.length} lignes)</p>
-                <div className="overflow-x-auto rounded-xl border border-neutral-800">
-                  <table className="w-full text-[11px]">
-                    <thead>
-                      <tr className="border-b border-neutral-800 bg-neutral-900/50">
-                        {preview.headers.slice(0, 4).map((h) => (
-                          <th key={h} className="px-3 py-2 text-left font-medium text-neutral-400">{h}</th>
-                        ))}
-                        {preview.headers.length > 4 && <th className="px-3 py-2 text-left text-neutral-500">…</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {preview.rows.map((row, i) => (
-                        <tr key={i} className="border-b border-neutral-800/80">
-                          {preview.headers.slice(0, 4).map((h) => (
-                            <td key={h} className="max-w-[200px] truncate px-3 py-2 text-neutral-300">{row[h] ?? "—"}</td>
-                          ))}
-                          {preview.headers.length > 4 && <td className="px-3 py-2 text-neutral-500">…</td>}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-3 text-xs text-red-300">
-                {error}
-              </div>
-            )}
-
-            {status === "uploading" && (
-              <div className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900/30 px-4 py-3 text-xs text-neutral-400">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-neutral-500" />
-                {progress}
-              </div>
-            )}
-
+        {/* CTA */}
+        {status !== "uploading" && (
+          <div className="animate-in fade-in duration-300">
             <button
               type="button"
               onClick={launchAnalysis}
-              disabled={!file || status === "uploading"}
-              className="mt-10 rounded-full bg-neutral-100 px-6 py-2.5 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!file}
+              className="w-full rounded-lg bg-neutral-200 py-4 text-sm font-medium tracking-wide text-neutral-900 shadow-sm transition-all duration-300 ease-in-out hover:bg-neutral-100 disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400 disabled:hover:bg-neutral-700 disabled:shadow-none active:scale-[0.99]"
             >
-              {status === "uploading" ? "Analyse en cours…" : "Lancer l'analyse"}
+              Start Analysis
             </button>
-          </CardBody>
-        </Card>
+          </div>
+        )}
 
+        {/* Result */}
         {result && status === "done" && (
-          <>
-            <div className="mt-8 rounded-2xl border border-emerald-900/50 bg-emerald-950/20 px-6 py-4">
-              <p className="text-sm font-medium text-emerald-200">Fichier analysé avec succès</p>
-              <p className="mt-2 text-lg font-light text-neutral-100">
-                {result.totalNotes} ligne{result.totalNotes > 1 ? "s" : ""} analysée{result.totalNotes > 1 ? "s" : ""}
+          <div className="mt-16 animate-in fade-in duration-500">
+            <div className="rounded-lg border border-neutral-800 bg-neutral-950 px-6 py-8">
+              <p className="text-sm font-light text-neutral-300">
+                {result.totalNotes} line{result.totalNotes !== 1 ? "s" : ""} analyzed
               </p>
-              <p className="mt-1 text-xs text-neutral-400">
-                Toutes les lignes du fichier ont été traitées : nettoyage RGPD, taxonomie et tags. Données enregistrées dans Supabase.
-              </p>
+              <div className="mt-6 grid grid-cols-3 gap-6">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-600">Lines</p>
+                  <p className="mt-0.5 text-2xl font-extralight text-neutral-100">{result.totalNotes}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-600">Tagged</p>
+                  <p className="mt-0.5 text-2xl font-extralight text-neutral-100">{result.taggedCount}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-600">Rate</p>
+                  <p className="mt-0.5 text-2xl font-extralight text-neutral-100">{result.taggingRate}%</p>
+                </div>
+              </div>
+              {result.tagsPreview.length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {result.tagsPreview.slice(0, 12).map((t, i) => (
+                    <span
+                      key={i}
+                      className="rounded border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-[10px] font-light text-neutral-500"
+                    >
+                      {t.tag_family} · {t.tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <a
                 href={`/dashboard/admin/dashboard?dataset=${result.datasetId}`}
-                className="mt-3 inline-block rounded-full bg-neutral-100 px-4 py-2 text-xs font-semibold text-neutral-900 transition hover:bg-neutral-200"
+                className="mt-6 inline-block rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-xs font-light text-neutral-300 transition hover:bg-neutral-800 hover:text-neutral-200"
               >
-                Voir le dashboard de ce fichier →
+                View dashboard →
               </a>
             </div>
-            <Card className="mt-6">
-              <CardHeader title="Résumé de l'analyse" description="Résultat du pipeline (dataset, client_notes, note_tags)" />
-              <CardBody className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div>
-                  <p className="text-[11px] text-neutral-500">Lignes analysées</p>
-                  <p className="text-2xl font-light text-neutral-50">{result.totalNotes}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-500">Notes taguées</p>
-                  <p className="text-2xl font-light text-neutral-50">{result.taggedCount}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-neutral-500">Taux de tagging</p>
-                  <p className="text-2xl font-light text-neutral-50">{result.taggingRate}%</p>
-                </div>
-              </div>
-              <div>
-                <p className="mb-2 text-[11px] text-neutral-500">Aperçu des tags générés</p>
-                <div className="flex flex-wrap gap-2">
-                  {result.tagsPreview.length === 0 ? (
-                    <span className="text-xs text-neutral-500">Aucun tag</span>
-                  ) : (
-                    result.tagsPreview.map((t, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full border border-neutral-700 bg-neutral-900/80 px-2.5 py-1 text-[11px] text-neutral-300"
-                      >
-                        {t.tag_family} · {t.tag}
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-          </>
+          </div>
         )}
       </div>
     </div>

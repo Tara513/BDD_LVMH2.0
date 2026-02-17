@@ -261,7 +261,7 @@ export default async function SellerClientFichePage({
       </Card>
 
       {recommendations.length > 0 && (
-        <Card className="mb-6 border-amber-900/40 bg-amber-950/20 p-5">
+        <Card className="mb-6 border-amber-900 bg-amber-950 p-5">
           <SectionTitle title="Recommandations" />
           <ul className="list-inside list-disc space-y-1 text-sm text-amber-200">
             {recommendations.map((rec, i) => (
@@ -271,7 +271,7 @@ export default async function SellerClientFichePage({
         </Card>
       )}
 
-      <Card className="mb-6 border-neutral-800 bg-neutral-950/50 p-5">
+      <Card className="mb-6 border-neutral-800 bg-neutral-950 p-5">
         <SectionTitle title="Business Recommendation" />
         {businessRec ? (
           <div className="space-y-3 text-sm">
@@ -280,10 +280,10 @@ export default async function SellerClientFichePage({
               <span
                 className={`inline-block rounded px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider ${
                   businessRec.priority_level === "High"
-                    ? "bg-amber-950/60 text-amber-200/90 border border-amber-800/50"
+                    ? "bg-amber-900 text-amber-200 border border-amber-800"
                     : businessRec.priority_level === "Medium"
                       ? "bg-neutral-800 text-neutral-200 border border-neutral-600"
-                      : "bg-neutral-800/60 text-neutral-400 border border-neutral-700"
+                      : "bg-neutral-800 text-neutral-400 border border-neutral-700"
                 }`}
               >
                 {businessRec.priority_level}

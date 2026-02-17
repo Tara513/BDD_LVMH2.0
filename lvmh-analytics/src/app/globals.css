@@ -9,7 +9,24 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes upload-shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+.animate-in {
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+  animation-name: fade-in;
+}
+.animate-in.duration-300 { animation-duration: 0.3s; }
+.animate-in.duration-500 { animation-duration: 0.5s; }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

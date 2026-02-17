@@ -42,6 +42,10 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
+    if (pathname === "/dashboard" && role === "admin") {
+      return NextResponse.redirect(new URL("/dashboard/admin/upload", request.url));
+    }
+
     if (pathname.startsWith("/dashboard/admin")) {
       if (role !== "admin") {
         const to =

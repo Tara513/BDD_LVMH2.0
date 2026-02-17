@@ -22,14 +22,14 @@ export function FicheCard({
 
   return (
     <Link href={`/dashboard/seller/client/${noteId}`} className="group block">
-      <Card className="!p-3 overflow-hidden border-neutral-800/80 transition-all duration-300 ease-out hover:border-neutral-600 hover:bg-neutral-800/40 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
+      <Card className="!p-3 overflow-hidden border-neutral-800 transition-all duration-300 ease-out hover:border-neutral-600 hover:bg-neutral-800 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
         {/* Ligne compacte par défaut */}
         <div className="flex items-center gap-3 text-[11px]">
           <span className="min-w-[4.5rem] shrink-0 font-medium text-neutral-400">
             {externalId ?? "—"}
           </span>
           {language && (
-            <span className="shrink-0 rounded-md bg-neutral-800/80 px-2 py-0.5 text-[10px] text-neutral-500">
+            <span className="shrink-0 rounded-md bg-neutral-800 px-2 py-0.5 text-[10px] text-neutral-500">
               {language}
             </span>
           )}
@@ -43,7 +43,7 @@ export function FicheCard({
           className="block max-h-0 overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:max-h-[200px]"
           style={{ transitionProperty: "max-height" }}
         >
-          <div className="border-t border-neutral-700/60 pt-3 mt-2 space-y-2">
+          <div className="border-t border-neutral-700 pt-3 mt-2 space-y-2">
             <p className="line-clamp-3 text-xs leading-relaxed text-neutral-400">
               {text}
             </p>
