@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fond transparent par défaut, logo en noir -->
+  <g fill="#000000">
+    <!-- Premier F : barre verticale + 2 barres horizontales -->
+    <rect x="5" y="5" width="14" height="90"/>
+    <rect x="5" y="5" width="50" height="14"/>
+    <rect x="5" y="43" width="38" height="14"/>
+    <!-- Second F inversé (miroir) -->
+    <rect x="81" y="5" width="14" height="90"/>
+    <rect x="45" y="81" width="50" height="14"/>
+    <rect x="57" y="43" width="38" height="14"/>
+  </g>
+</svg>

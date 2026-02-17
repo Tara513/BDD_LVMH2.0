@@ -6,6 +6,9 @@ import { setMockAuth, checkAccessCode } from "@/lib/mock-auth";
 
 type LoginRole = "admin" | "seller";
 
+// Logo Fendi FF en SVG (noir, fond transparent) pour motif de fond
+const FENDI_LOGO_SVG = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#000"><rect x="5" y="5" width="14" height="90"/><rect x="5" y="5" width="50" height="14"/><rect x="5" y="43" width="38" height="14"/><rect x="81" y="5" width="14" height="90"/><rect x="45" y="81" width="50" height="14"/><rect x="57" y="43" width="38" height="14"/></g></svg>`)}`;
+
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState<LoginRole>("seller");
@@ -41,8 +44,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-neutral-900 bg-neutral-950 px-8 py-10 shadow-lg">
+    <div
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{
+        backgroundColor: "#171717",
+        backgroundImage: `url(${FENDI_LOGO_SVG})`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "100px",
+        backgroundPosition: "0 0",
+      }}
+    >
+      <div className="w-full max-w-sm rounded-2xl border border-neutral-800 bg-neutral-950 px-8 py-10 shadow-2xl">
         <div className="mb-6">
           <div className="text-[10px] font-semibold tracking-[0.2em] text-neutral-400">FENDI</div>
           <h1 className="mt-4 text-2xl font-semibold text-neutral-50">Sign in</h1>
