@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
 
       setMockAuth(role);
-      router.push(role === "seller" ? "/dashboard/seller" : "/dashboard/admin");
+      router.push(role === "seller" ? "/dashboard/seller" : "/dashboard/admin/upload");
       router.refresh();
     } catch (err) {
       setError("Une erreur inattendue s'est produite.");

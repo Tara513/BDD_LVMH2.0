@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminRootPage() {
-  redirect("/dashboard/admin/dashboard");
+  redirect("/dashboard/admin/upload");
 }

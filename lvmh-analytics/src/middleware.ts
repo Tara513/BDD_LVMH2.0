@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
     if (role) {
       const redirect =
         role === "admin"
-          ? "/dashboard/admin/dashboard"
+          ? "/dashboard/admin/upload"
           : role === "analyst"
             ? "/dashboard/analytics"
             : "/dashboard/seller";

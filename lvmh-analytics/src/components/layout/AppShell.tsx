@@ -10,7 +10,7 @@ import { Header } from "./Header";
 function getRedirectPath(role: string | null): string {
   switch (role) {
     case "admin":
-      return "/dashboard/admin";
+      return "/dashboard/admin/upload";
     case "analyst":
       return "/dashboard/analytics";
     case "seller":
