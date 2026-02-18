@@ -26,9 +26,9 @@ const PRODUCT_LABELS: Record<string, string> = {
   Escarpin: "Escarpins",
 };
 
-export default function ProduitsVendusPage() {
+export default function SellerProduitsVendusPage() {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<Array<{ name: string; count: number }>>([]);
+  const [chartData, setChartData] = useState<Array<{ name: string; count: number }>>([]);
 
   useEffect(() => {
     (async () => {
@@ -40,7 +40,7 @@ export default function ProduitsVendusPage() {
         .maybeSingle();
 
       if (!datasetRow?.id) {
-        setData([]);
+        setChartData([]);
         setLoading(false);
         return;
       }
@@ -53,7 +53,7 @@ export default function ProduitsVendusPage() {
 
       const noteIds = (notes ?? []).map((n) => n.id);
       if (noteIds.length === 0) {
-        setData([]);
+        setChartData([]);
         setLoading(false);
         return;
       }
@@ -73,7 +73,7 @@ export default function ProduitsVendusPage() {
         }
       }
 
-      const chartData = Object.entries(counts)
+      const data = Object.entries(counts)
         .map(([tag, count]) => ({
           name: PRODUCT_LABELS[tag] ?? tag,
           count,
@@ -81,7 +81,7 @@ export default function ProduitsVendusPage() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 12);
 
-      setData(chartData);
+      setChartData(data);
       setLoading(false);
     })();
   }, []);
@@ -89,7 +89,7 @@ export default function ProduitsVendusPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <span className="text-xs text-neutral-500">Chargement des produits…</span>
+        <span className="text-xs text-neutral-500">Chargement…</span>
       </div>
     );
   }
@@ -106,10 +106,10 @@ export default function ProduitsVendusPage() {
       </div>
 
       <ChartCard
-        title="Top produits"
-        description="Classement par nombre de mentions dans les notes"
+        title="Produits les plus vendus (Fendi)"
+        description="Classement par nombre de mentions dans les notes — dernier dataset"
       >
-        {data.length === 0 ? (
+        {chartData.length === 0 ? (
           <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-neutral-700 bg-neutral-900/30">
             <p className="text-center text-xs text-neutral-500">
               Aucune donnée. Importez et analysez un CSV dans la partie Admin.
@@ -119,7 +119,7 @@ export default function ProduitsVendusPage() {
           <div className="min-h-0 w-full overflow-visible" style={{ height: 360 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={data}
+                data={chartData}
                 margin={{ top: 12, right: 20, bottom: 80, left: 12 }}
                 barCategoryGap="18%"
               >
@@ -134,7 +134,7 @@ export default function ProduitsVendusPage() {
                 <YAxis {...AXIS_STYLE} width={32} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar dataKey="count" radius={BAR_RADIUS} minPointSize={4}>
-                  {data.map((_, i) => (
+                  {chartData.map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Bar>
